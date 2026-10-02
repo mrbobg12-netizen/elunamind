@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai, MODEL, clean, readJson } from "../../../lib/ai";
+import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 
 export async function POST(req: Request) {
@@ -112,7 +112,8 @@ Keep language concise and student-friendly.`
     });
 
     const raw = response.choices[0]?.message?.content || "{}";
-    const test = JSON.parse(raw);
+    const test = extractJson<any>(raw, "object");
+    if (!test || !Array.isArray(test.mcqs)) throw new Error("Invalid test format");
 
     return NextResponse.json({ test });
   } catch (err: any) {

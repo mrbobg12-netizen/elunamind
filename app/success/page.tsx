@@ -1,107 +1,38 @@
 "use client";
-import { supabase } from "@/lib/supabase/browser";
-import React, { useEffect, useState } from "react";
-
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Icon } from "../_components/Icon";
+import { Logo } from "../_components/Logo";
 
 export default function SuccessPage() {
-  const [loading, setLoading] = useState(true);
-  const [done, setDone] = useState(false);
+  const [state, setState] = useState<"checking" | "done" | "slow">("checking");
 
   useEffect(() => {
-    const refreshPlan = async () => {
+    let tries = 0, stop = false;
+    const tick = async () => {
+      if (stop) return;
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session?.user?.email) {
-          window.location.href = "/login";
-          return;
-        }
-
-        // Fetch updated plan from Supabase
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("plan")
-          .eq("id", session.user.id)
-          .single();
-
-        if (error) console.error("Error refreshing plan:", error);
-        if (data?.plan === "premium") {
-          setDone(true);
-        }
-      } catch (err) {
-        console.error("Error:", err);
-      } finally {
-        setLoading(false);
-      }
+        const r = await fetch("/api/usage", { cache: "no-store" });
+        if (r.status === 401) { window.location.href = "/login?next=/success"; return; }
+        if (r.ok && (await r.json()).plan === "premium") { setState("done"); return; }
+      } catch { /* retry */ }
+      if (++tries >= 12) { setState("slow"); return; }
+      setTimeout(tick, 2000);
     };
-
-    refreshPlan();
+    tick();
+    return () => { stop = true; };
   }, []);
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "#0a0a0f",
-          color: "#fff",
-        }}
-      >
-        <h2>Processing your payment...</h2>
-      </div>
-    );
-  }
-
-  if (done) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "#0a0a0f",
-          color: "#fff",
-        }}
-      >
-        <h2>✅ Payment successful! Premium unlocked.</h2>
-        <button
-          onClick={() => (window.location.href = "/")}
-          style={{
-            marginTop: "20px",
-            padding: "12px 24px",
-            background:
-              "linear-gradient(90deg,#27f0c8,#3aa3ff,#b575ff)",
-            border: "none",
-            borderRadius: "10px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          Go to Dashboard
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#0a0a0f",
-        color: "#fff",
-      }}
-    >
-      <h2>Payment verified but not updated yet. Please refresh in 10s.</h2>
+    <div className="relative grid min-h-dvh place-items-center overflow-hidden px-4">
+      <div className="orb -left-10 top-10 h-72 w-72 bg-violet-600/40" />
+      <div className="orb bottom-0 right-0 h-72 w-72 bg-emerald-500/25" style={{ animationDelay: "-6s" }} />
+      <div className="glass-strong pop-in relative w-full max-w-md rounded-3xl p-9 text-center">
+        <div className="mb-6 flex justify-center"><Logo /></div>
+        {state === "checking" && (<><div className="mx-auto mb-5 grid h-16 w-16 place-items-center"><span className="spinner !h-8 !w-8" /></div><h1 className="text-xl font-bold text-white">Confirming your payment…</h1><p className="mt-2 text-sm text-mute">This usually takes a few seconds.</p></>)}
+        {state === "done" && (<><div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-emerald-500/20 text-emerald-300"><Icon name="check" size={32} stroke={2.4} /></div><h1 className="text-2xl font-bold text-white">Welcome to Premium!</h1><p className="mt-2 text-sm text-mute">All study tools and higher limits are now unlocked.</p><Link href="/dashboard" className="btn btn-primary mt-7 w-full">Go to dashboard</Link></>)}
+        {state === "slow" && (<><h1 className="text-xl font-bold text-white">Payment received, still activating</h1><p className="mt-2 text-sm text-mute">Your plan can take a minute to update. Open the dashboard and refresh in a moment. If it does not change, email support@elunamind.app.</p><Link href="/dashboard" className="btn btn-primary mt-7 w-full">Go to dashboard</Link></>)}
+      </div>
     </div>
   );
 }

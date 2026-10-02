@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { supabaseAdmin } from "../../../lib/supabase/admin";
 
 export async function POST(req: Request) {
   const g = await guard(req, "notes");
@@ -24,7 +25,18 @@ export async function POST(req: Request) {
     });
     const notes = res.choices[0]?.message?.content;
     if (!notes) throw new Error("Empty AI response");
-    return NextResponse.json({ notes });
+
+    // Save to the user's notes history (best effort: never fail the request because of it).
+    let id: string | null = null;
+    try {
+      const title = text.replace(/\s+/g, " ").slice(0, 60);
+      const { data } = await supabaseAdmin()
+        .from("notes_history").insert({ user_id: g.auth.user.id, title, content: notes }).select("id").single();
+      id = (data?.id as string) ?? null;
+    } catch (e) {
+      console.error("notes history save failed:", e);
+    }
+    return NextResponse.json({ notes, id });
   } catch (err) {
     console.error("notes error:", err);
     await g.refund();

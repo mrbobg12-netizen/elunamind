@@ -1,380 +1,191 @@
-"use client";
-import { supabase } from "@/lib/supabase/browser";
-import { useState, useEffect } from "react";
-import { syncProfile } from "./utils/syncProfile";
+import Link from "next/link";
+import { Icon } from "./_components/Icon";
+import { Reveal } from "./_components/Reveal";
+import { TOOLS } from "./_components/tools";
+import { SiteNav } from "./_components/landing/SiteNav";
+import { PricingCards } from "./_components/landing/PricingCards";
+import { Faq } from "./_components/landing/Faq";
+import { Footer } from "./_components/landing/Footer";
 
+const STEPS = [
+  { n: "01", t: "Create a free account", d: "Sign up in seconds with email. No card needed." },
+  { n: "02", t: "Pick a tool or just ask", d: "Chat with your AI tutor, generate notes, practise questions or plan your exam." },
+  { n: "03", t: "Study, save and improve", d: "Everything is saved to your account, and you always see what is left of your daily limit." },
+];
 
-export default function Home() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [input, setInput] = useState("");
-  const [notes, setNotes] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    // Splash screen timeout (3 seconds)
-    const timer = setTimeout(() => setShowSplash(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    // Check if user is logged in
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        window.location.href = "/login"; // redirect if not logged in
-      } else {
-        setUser(data.user);
-      }
-    };
-    getUser();
-  }, []);
-
-  useEffect(() => {
-    // Create or update the user record in Supabase
-    const runSync = async () => {
-      console.log("Running syncProfile test...");
-      try {
-        await syncProfile();
-        console.log("syncProfile completed.");
-      } catch (err) {
-        console.error("syncProfile error:", err);
-      }
-    };
-
-    runSync();
-  }, []);
-
-  if (showSplash) {
-    return (
-      <main
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "radial-gradient(circle at 20% 20%, #0a0a0f, #050507)",
-          color: "#fff",
-          fontFamily: "Inter, sans-serif",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "42px",
-            fontWeight: 800,
-            background: "linear-gradient(90deg,#27f0c8,#3aa3ff,#b575ff)",
-            WebkitBackgroundClip: "text",
-            color: "transparent",
-          }}
-        >
-          Welcome to Eluna Mind
-        </h1>
-        <p style={{ color: "#b5b5c8", marginTop: "10px" }}>
-          The smartest way to study ✨
-        </p>
-      </main>
-    );
-  }
-
-  const handleGenerateNotes = async () => {
-    if (!input.trim()) return;
-    setLoading(true);
-    setNotes("");
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: input }),
-      });
-      const data = await res.json();
-
-      if (res.status === 403 && data.upgrade) {
-        alert(data.error);
-        window.location.href = "/pricing";
-        return;
-      }
-
-      setNotes(data.notes || "No notes generated.");
-    } catch {
-      setNotes("Error generating notes.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+function HeroMock() {
   return (
-    <main
-      style={{
-        background: "radial-gradient(circle at 20% 20%, #0a0a0f, #050507)",
-        minHeight: "100vh",
-        color: "#fff",
-        fontFamily: "Inter, sans-serif",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-      }}
-    >
-      {/* ---- NAVBAR ---- */}
-      <header
-        style={{
-          position: "fixed",
-          top: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "20px 60px",
-          backdropFilter: "blur(10px)",
-          background: "rgba(15,15,20,0.55)",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-          zIndex: 1000,
-        }}
-      >
-        <h2
-          style={{
-            fontWeight: 800,
-            fontSize: "24px",
-            background: "linear-gradient(90deg,#27f0c8,#3aa3ff,#b575ff)",
-            WebkitBackgroundClip: "text",
-            color: "transparent",
-            cursor: "pointer",
-          }}
-          onClick={() => (window.location.href = "/")}
-        >
-          Eluna Mind
-        </h2>
-
-        {/* 3-dot vertical menu icon */}
-        <div
-          onClick={() => (window.location.href = "/menu")}
-          style={{
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            gap: "5px",
-            padding: "10px",
-            borderRadius: "10px",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            transition: "0.2s",
-          }}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.background = "rgba(255,255,255,0.12)")
-          }
-          onMouseOut={(e) =>
-            (e.currentTarget.style.background = "rgba(255,255,255,0.05)")
-          }
-        >
-          <div
-            style={{
-              width: "5px",
-              height: "5px",
-              background: "#fff",
-              borderRadius: "50%",
-            }}
-          />
-          <div
-            style={{
-              width: "5px",
-              height: "5px",
-              background: "#fff",
-              borderRadius: "50%",
-            }}
-          />
-          <div
-            style={{
-              width: "5px",
-              height: "5px",
-              background: "#fff",
-              borderRadius: "50%",
-            }}
-          />
+    <div className="relative mx-auto w-full max-w-xl">
+      <div className="orb -left-10 top-10 h-52 w-52 bg-violet-600/60" />
+      <div className="orb -bottom-6 right-0 h-52 w-52 bg-cyan-500/40" style={{ animationDelay: "-7s" }} />
+      <div className="glass-strong float-y relative rounded-3xl p-4 shadow-2xl shadow-violet-900/30 sm:p-5">
+        <div className="mb-4 flex items-center gap-2 border-b border-white/10 pb-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" /><span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" /><span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
+          <span className="ml-2 text-xs text-mute">Eluna · AI Tutor</span>
+          <span className="chip chip-ok ml-auto">Example</span>
         </div>
-      </header>
+        <div className="space-y-3 text-sm">
+          <div className="pop-in flex justify-end" style={{ animationDelay: ".4s" }}><div className="max-w-[85%] rounded-2xl rounded-br-md px-4 py-2.5 text-white" style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>Explain photosynthesis like I&apos;m 12</div></div>
+          <div className="pop-in flex gap-2.5" style={{ animationDelay: "1.2s" }}>
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-white" style={{ background: "linear-gradient(135deg,#8b5cf6,#22d3ee)" }}><Icon name="spark" size={14} /></span>
+            <div className="rounded-2xl rounded-tl-md bg-white/[0.06] px-4 py-3 text-slate-200">
+              Plants make their own food using sunlight. Think of a leaf as a tiny kitchen:
+              <ul className="mt-2 space-y-1 text-[0.82rem] text-slate-300">
+                <li><b className="text-white">Ingredients:</b> sunlight, water, and carbon dioxide</li>
+                <li><b className="text-white">Chef:</b> chlorophyll, the green stuff in leaves</li>
+                <li><b className="text-white">Result:</b> sugar for energy, plus oxygen for us</li>
+              </ul>
+            </div>
+          </div>
+          <div className="pop-in flex gap-2.5" style={{ animationDelay: "2s" }}>
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-white" style={{ background: "linear-gradient(135deg,#8b5cf6,#22d3ee)" }}><Icon name="spark" size={14} /></span>
+            <div className="dots rounded-2xl bg-white/[0.06] px-4 py-3"><span /><span /><span /></div>
+          </div>
+        </div>
+      </div>
+      <div className="glass pop-in absolute -right-2 -top-5 hidden items-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs text-white sm:flex" style={{ animationDelay: "1.6s" }}><Icon name="notes" size={16} className="text-violet-300" /> Notes saved</div>
+      <div className="glass pop-in absolute -bottom-5 -left-3 hidden items-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs text-white sm:flex" style={{ animationDelay: "2.2s" }}><Icon name="zap" size={16} className="text-cyan-300" /> 14 of 15 messages left today</div>
+    </div>
+  );
+}
 
-      {/* ---- HERO / TOOL ---- */}
-      <section
-        style={{
-          marginTop: "120px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          padding: "40px 20px",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "48px",
-            background: "linear-gradient(90deg,#27f0c8,#3aa3ff,#b575ff)",
-            WebkitBackgroundClip: "text",
-            color: "transparent",
-            fontWeight: 800,
-            marginBottom: "10px",
-          }}
-        >
-          The Smartest Way to Study
-        </h1>
-        <p style={{ color: "#b5b5c8", fontSize: "18px", marginBottom: "40px" }}>
-          Create notes, flashcards, tests, and presentations with one click.
-        </p>
+export default function Landing() {
+  const loop = [...TOOLS, ...TOOLS];
+  return (
+    <div className="relative">
+      <SiteNav />
 
-        <div
-          style={{
-            backdropFilter: "blur(10px)",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "20px",
-            padding: "25px",
-            maxWidth: "700px",
-            width: "90%",
-            boxShadow: "0 0 30px rgba(0,0,0,0.25)",
-          }}
-        >
-          <textarea
-            placeholder="Enter your topic or question..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            style={{
-              width: "100%",
-              height: "130px",
-              padding: "15px",
-              borderRadius: "14px",
-              border: "1px solid #24242e",
-              background: "rgba(15,15,20,0.7)",
-              color: "#fff",
-              fontSize: "16px",
-              outline: "none",
-              resize: "none",
-            }}
-          />
+      {/* HERO */}
+      <section className="relative overflow-hidden px-4 pb-20 pt-32 sm:px-6 sm:pt-40">
+        <div className="grid-bg absolute inset-0 -z-10" />
+        <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
+          <div>
+            <div className="pop-in chip chip-brand mb-5"><Icon name="spark" size={12} /> Your AI study companion</div>
+            <h1 className="pop-in text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-6xl" style={{ animationDelay: ".08s" }}>
+              Study smarter with an <span className="gradient-text">AI tutor</span> that explains, quizzes and plans.
+            </h1>
+            <p className="pop-in mt-5 max-w-xl text-lg leading-relaxed text-mute" style={{ animationDelay: ".16s" }}>
+              Chat with your tutor, turn any text into notes, practise with questions and build a study plan, all in one place. Ask in English, Urdu or Roman Urdu.
+            </p>
+            <div className="pop-in mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: ".24s" }}>
+              <Link href="/login?mode=signup&next=/dashboard" className="btn btn-primary !px-6 !py-3.5 text-base">Start free trial <Icon name="arrow" size={18} /></Link>
+              <Link href="/#features" className="btn btn-ghost !px-6 !py-3.5 text-base">See what&apos;s inside</Link>
+            </div>
+            <p className="pop-in mt-4 flex items-center gap-2 text-sm text-mute" style={{ animationDelay: ".3s" }}><Icon name="shield" size={15} className="text-emerald-400" /> Free plan included. No credit card required.</p>
+          </div>
+          <HeroMock />
+        </div>
+      </section>
 
-          <div
-            style={{
-              marginTop: "20px",
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: "10px",
-            }}
-          >
-            {[
-              {
-                name: "Generate Notes",
-                color: "linear-gradient(90deg,#00ffa8,#00c7ff)",
-                action: handleGenerateNotes,
-              },
-              { name: "Q&A", color: "linear-gradient(90deg,#007bff,#00bfff)", link: "/qna" },
-              { name: "Flashcards", color: "linear-gradient(90deg,#a56eff,#9b59b6)", link: "/flashcards" },
-              { name: "Test", color: "linear-gradient(90deg,#ff8c00,#ffb347)", link: "/test" },
-              { name: "Visual Map", color: "linear-gradient(90deg,#00ced1,#00e0ff)", link: "/visual-map" },
-              { name: "Presentation", color: "linear-gradient(90deg,#ff6ec7,#6ea8ff)", link: "/presentation" },
-              { name: "Citations", color: "linear-gradient(90deg,#27f0c8,#3aa3ff,#b575ff)", link: "/citations" },
-              { name: "Grammar", color: "linear-gradient(90deg,#00ffa8,#00c7ff)", link: "/grammar" },
-              { name: "Paraphrasing", color: "linear-gradient(90deg,#ff4ec7,#ff8c00)", link: "/paraphrase" },
-              { name: "Career Help", color: "linear-gradient(90deg,#6ea8ff,#55f2c8)", link: "/career" },
-              { name: "Study Plan", color: "linear-gradient(90deg,#ff9a9e,#fad0c4)", link: "/study-plan" },
-            ].map((btn, i) => (
-              <button
-                key={i}
-                onClick={() =>
-                  btn.link
-                    ? (window.location.href = btn.link)
-                    : btn.action?.()
-                }
-                disabled={loading && btn.name === "Generate Notes"}
-                style={{
-                  background: btn.color,
-                  color: "#000",
-                  padding: "12px 22px",
-                  borderRadius: "10px",
-                  border: "none",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: "0 0 20px rgba(255,255,255,0.1)",
-                  transition: "all 0.25s ease",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-              >
-                {loading && btn.name === "Generate Notes"
-                  ? "Loading..."
-                  : btn.name}
-              </button>
+      {/* TOOL MARQUEE */}
+      <div className="overflow-hidden border-y border-white/[0.07] bg-white/[0.02] py-4">
+        <div className="marquee gap-3">
+          {loop.map((t, i) => (
+            <span key={i} className="mx-1.5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300">
+              <Icon name={t.icon} size={15} className="text-violet-300" /> {t.title}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* FEATURES */}
+      <section id="features" className="scroll-mt-20 px-4 py-24 sm:px-6">
+        <div className="mx-auto max-w-6xl">
+          <Reveal className="mx-auto mb-14 max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Everything you need to <span className="gradient-text">learn faster</span></h2>
+            <p className="mt-3 text-mute">Twelve study tools that work together, from quick answers to full exam preparation.</p>
+          </Reveal>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {TOOLS.map((t, i) => (
+              <Reveal key={t.key} delay={(i % 3) * 80}>
+                <div className="glass card-hover h-full rounded-2xl p-6">
+                  <div className="mb-4 flex items-start justify-between">
+                    <span className="grid h-12 w-12 place-items-center rounded-xl text-white" style={{ background: `linear-gradient(135deg, ${t.grad[0]}, ${t.grad[1]})`, boxShadow: `0 12px 28px -12px ${t.grad[0]}` }}><Icon name={t.icon} size={24} /></span>
+                    {t.premium ? <span className="chip chip-brand">Premium</span> : <span className="chip chip-ok">Free</span>}
+                  </div>
+                  <h3 className="font-semibold text-white">{t.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-mute">{t.desc}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
-
-        {notes && (
-          <div
-            style={{
-              marginTop: "40px",
-              background: "rgba(255,255,255,0.05)",
-              padding: "25px",
-              borderRadius: "14px",
-              maxWidth: "700px",
-              width: "100%",
-              textAlign: "left",
-              border: "1px solid rgba(255,255,255,0.08)",
-              boxShadow: "0 0 25px rgba(0,0,0,0.25)",
-            }}
-          >
-            <h3
-              style={{
-                background: "linear-gradient(90deg,#00ffa8,#00c7ff)",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-                fontWeight: "800",
-                marginBottom: "12px",
-              }}
-            >
-              Notes
-            </h3>
-            <div
-              dangerouslySetInnerHTML={{
-                __html: notes
-                  .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
-                  .replace(/## (.*?)\n/g, "<h3>$1</h3>")
-                  .replace(/\n/g, "<br/>"),
-              }}
-            />
-          </div>
-        )}
       </section>
 
-      {/* ---- FOOTER ---- */}
-      <footer
-        style={{
-          borderTop: "1px solid rgba(255,255,255,0.1)",
-          padding: "30px 60px",
-          textAlign: "center",
-          color: "#b5b5c8",
-          fontSize: "14px",
-          background: "rgba(10,10,15,0.9)",
-        }}
-      >
-        <div
-          style={{
-            height: "3px",
-            background: "linear-gradient(90deg,#27f0c8,#3aa3ff,#b575ff)",
-          }}
-        />
-        <p style={{ marginBottom: "6px" }}>
-          Empowering smarter learning worldwide 🌍
-        </p>
-        <p>
-          <a href="/privacy" style={{ color: "#6ea8ff", textDecoration: "none" }}>
-            Privacy Policy
-          </a>{" "}
-          |{" "}
-          <a href="/terms" style={{ color: "#6ea8ff", textDecoration: "none" }}>
-            Terms
-          </a>{" "}
-          | © {new Date().getFullYear()} Eluna Mind Inc.
-        </p>
-      </footer>
-    </main>
+      {/* HOW */}
+      <section id="how" className="scroll-mt-20 px-4 py-24 sm:px-6">
+        <div className="mx-auto max-w-5xl">
+          <Reveal className="mx-auto mb-14 max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Up and running in <span className="gradient-text">three steps</span></h2>
+          </Reveal>
+          <div className="grid gap-5 md:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <Reveal key={s.n} delay={i * 120}>
+                <div className="glass h-full rounded-2xl p-6">
+                  <span className="gradient-text text-4xl font-bold">{s.n}</span>
+                  <h3 className="mt-3 text-lg font-semibold text-white">{s.t}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-mute">{s.d}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CHAT SPOTLIGHT */}
+      <section className="px-4 py-24 sm:px-6">
+        <Reveal>
+          <div className="glass-strong relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] p-8 sm:p-12">
+            <div className="orb -right-16 -top-16 h-72 w-72 bg-violet-600/40" />
+            <div className="relative grid items-center gap-10 lg:grid-cols-2">
+              <div>
+                <span className="chip chip-brand mb-4"><Icon name="chat" size={12} /> AI Tutor Chat</span>
+                <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">A tutor that is awake whenever you are</h2>
+                <ul className="mt-6 space-y-3.5 text-slate-300">
+                  {["Step-by-step explanations in simple language", "Understands English, Urdu and Roman Urdu", "Every conversation is saved so you can continue later", "A live counter always shows how many messages you have left today"].map((x) => (
+                    <li key={x} className="flex items-start gap-3"><Icon name="check" size={18} className="mt-0.5 shrink-0 text-emerald-400" />{x}</li>
+                  ))}
+                </ul>
+                <Link href="/login?mode=signup&next=/dashboard/chat" className="btn btn-primary mt-8">Try the tutor free <Icon name="arrow" size={16} /></Link>
+              </div>
+              <div className="space-y-3">
+                {["Quiz me on World War 2", "Mujhe derivatives asaan tareeqe se samjhao", "Make a 7-day plan for my chemistry exam"].map((p, i) => (
+                  <Reveal key={p} delay={i * 100}><div className="glass rounded-2xl px-5 py-4 text-slate-200"><span className="mr-2 text-violet-300">›</span>{p}</div></Reveal>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* PRICING */}
+      <section id="pricing" className="scroll-mt-20 px-4 py-24 sm:px-6">
+        <Reveal className="mx-auto mb-14 max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Simple, <span className="gradient-text">honest pricing</span></h2>
+          <p className="mt-3 text-mute">Start free. Upgrade only when you need more.</p>
+        </Reveal>
+        <Reveal><PricingCards /></Reveal>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="scroll-mt-20 px-4 py-24 sm:px-6">
+        <Reveal className="mx-auto mb-12 max-w-2xl text-center"><h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Questions, answered</h2></Reveal>
+        <Reveal><Faq /></Reveal>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="px-4 pb-24 sm:px-6">
+        <Reveal>
+          <div className="relative mx-auto max-w-4xl overflow-hidden rounded-[2rem] p-10 text-center sm:p-14" style={{ background: "linear-gradient(135deg, rgba(139,92,246,.35), rgba(34,211,238,.18))", border: "1px solid rgba(255,255,255,.12)" }}>
+            <div className="orb -left-10 -top-10 h-56 w-56 bg-pink-500/30" />
+            <h2 className="relative text-3xl font-bold text-white sm:text-4xl">Ready to study smarter?</h2>
+            <p className="relative mx-auto mt-3 max-w-lg text-slate-200/80">Join the free plan today and ask your first question in under a minute.</p>
+            <Link href="/login?mode=signup&next=/dashboard" className="btn btn-primary relative mt-7 !px-7 !py-3.5 text-base">Start free trial <Icon name="arrow" size={18} /></Link>
+          </div>
+        </Reveal>
+      </section>
+
+      <Footer />
+    </div>
   );
 }
