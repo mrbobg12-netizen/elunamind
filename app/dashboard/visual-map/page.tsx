@@ -83,9 +83,9 @@ export default function VisualMapPage() {
               </svg>
             </div>
             {selected && (
-              <Panel className="pop-in" ><h3 className="mb-1 font-semibold text-violet-200">{selected.label}</h3><p className="text-sm leading-relaxed text-slate-300">{selected.details || "No details provided."}</p></Panel>
+              <Panel className="pop-in" ><h3 className="mb-1 font-semibold text-lamp">{selected.label}</h3><p className="text-sm leading-relaxed text-paper/75">{selected.details || "No details provided."}</p></Panel>
             )}
-            <p className="text-center text-xs text-mute">Click any node to read its explanation. Scroll sideways on small screens.</p>
+            <p className="text-center text-xs text-muted">Click any node to read its explanation. Scroll sideways on small screens.</p>
           </div>
         )}
       </div>

@@ -12,9 +12,9 @@ import { UpgradeButton } from "../_components/Upgrade";
 function NavLink({ href, icon, label, active, locked, onClick }: { href: string; icon: Parameters<typeof Icon>[0]["name"]; label: string; active: boolean; locked?: boolean; onClick?: () => void }) {
   return (
     <Link href={href} onClick={onClick}
-      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-white/10 text-white" : "text-mute hover:bg-white/5 hover:text-white"}`}>
-      {active && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-violet-400 to-cyan-300" />}
-      <Icon name={icon} size={18} className={active ? "text-violet-300" : ""} />
+      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-white/10 text-paper" : "text-muted hover:bg-white/5 hover:text-paper"}`}>
+      {active && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-amber-400 to-amber-200" />}
+      <Icon name={icon} size={18} className={active ? "text-lamp" : ""} />
       <span className="flex-1 truncate">{label}</span>
       {locked && <Icon name="lock" size={13} className="text-mute/70" />}
     </Link>
@@ -38,8 +38,8 @@ function UsageMeter() {
           <defs><linearGradient id="ringg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8b5cf6" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs>
         </svg>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-white">{plan === "premium" ? "Premium plan" : "Free plan"}</p>
-          <p className="text-xs text-mute">{pct}% of today&apos;s {plan === "premium" ? "chat" : "free"} limit used</p>
+          <p className="text-sm font-semibold text-paper">{plan === "premium" ? "Premium plan" : "Free plan"}</p>
+          <p className="text-xs text-muted">{pct}% of today&apos;s {plan === "premium" ? "chat" : "free"} limit used</p>
         </div>
       </div>
       <ul className="space-y-2.5">
@@ -48,9 +48,9 @@ function UsageMeter() {
           const w = u.limit ? Math.min(100, (u.used / u.limit) * 100) : 0;
           return (
             <li key={t.key}>
-              <div className="mb-1 flex justify-between text-[0.72rem] text-mute"><span>{t.short}</span><span>{u.used}/{u.limit}</span></div>
+              <div className="mb-1 flex justify-between text-[0.72rem] text-muted"><span>{t.short}</span><span>{u.used}/{u.limit}</span></div>
               <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400" style={{ width: `${w}%`, transition: "width .6s ease" }} />
+                <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-200" style={{ width: `${w}%`, transition: "width .6s ease" }} />
               </div>
             </li>
           );
@@ -96,9 +96,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <div className="mt-auto space-y-3 pt-2">
         <UsageMeter />
         <div className="flex items-center gap-3 rounded-xl px-2 py-1.5">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-400 text-sm font-bold text-white">{(email[0] || "U").toUpperCase()}</span>
-          <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-white">{email.split("@")[0] || "You"}</p><p className="truncate text-xs text-mute">{plan === "premium" ? "Premium" : "Free plan"}</p></div>
-          <button type="button" onClick={logout} title="Log out" className="rounded-lg p-2 text-mute transition hover:bg-white/10 hover:text-white"><Icon name="logout" size={18} /></button>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-200 text-sm font-semibold text-paper">{(email[0] || "U").toUpperCase()}</span>
+          <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-paper">{email.split("@")[0] || "You"}</p><p className="truncate text-xs text-muted">{plan === "premium" ? "Premium" : "Free plan"}</p></div>
+          <button type="button" onClick={logout} title="Log out" className="rounded-lg p-2 text-muted transition hover:bg-white/10 hover:text-paper"><Icon name="logout" size={18} /></button>
         </div>
       </div>
     </div>
@@ -117,8 +117,8 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="relative min-h-dvh">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="orb -left-24 top-0 h-80 w-80 bg-violet-700/40" />
-        <div className="orb -right-24 bottom-0 h-96 w-96 bg-cyan-600/20" style={{ animationDelay: "-6s" }} />
+        <div className="lamp-glow -left-24 top-0 h-80 w-80 bg-amber-400/15" />
+        <div className="lamp-glow -right-24 bottom-0 h-96 w-96 bg-indigo-500/18" style={{ animationDelay: "-6s" }} />
       </div>
 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-white/[0.07] bg-[#090912]/80 backdrop-blur-xl lg:block">
@@ -126,7 +126,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </aside>
 
       <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-white/[0.07] bg-[#07070d]/80 px-4 backdrop-blur-xl lg:hidden">
-        <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" className="rounded-lg p-2 text-slate-200 hover:bg-white/10"><Icon name="menu" size={22} /></button>
+        <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" className="rounded-lg p-2 text-paper/85 hover:bg-white/10"><Icon name="menu" size={22} /></button>
         <Logo href="/dashboard" size={28} />
       </header>
 
@@ -134,7 +134,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="pop-in absolute inset-y-0 left-0 w-[85%] max-w-xs border-r border-white/10 bg-[#0a0a14]">
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close menu" className="absolute right-3 top-3 z-10 rounded-lg p-2 text-mute hover:bg-white/10"><Icon name="x" size={20} /></button>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close menu" className="absolute right-3 top-3 z-10 rounded-lg p-2 text-muted hover:bg-white/10"><Icon name="x" size={20} /></button>
             <SidebarContent onNavigate={() => setOpen(false)} />
           </div>
         </div>

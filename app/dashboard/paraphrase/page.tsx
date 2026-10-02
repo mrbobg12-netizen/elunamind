@@ -22,7 +22,7 @@ export default function ParaphrasePage() {
           <Panel className="pop-in">
             <div className="mb-3 flex items-center justify-between"><span className="chip chip-ok">Paraphrased</span>
               <div className="flex gap-2"><button type="button" className="btn btn-ghost btn-sm" onClick={() => { setText(out); setOut(""); }}>Use as input</button><CopyButton text={out} /></div></div>
-            <p className="whitespace-pre-wrap text-[0.95rem] leading-relaxed text-white">{out}</p>
+            <p className="whitespace-pre-wrap text-[0.95rem] leading-relaxed text-paper">{out}</p>
           </Panel>
         )}
       </div>

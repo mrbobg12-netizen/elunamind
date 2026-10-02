@@ -34,12 +34,12 @@ export default function QnaPage() {
             {items.map((it, i) => (
               <div key={i} className="glass pop-in overflow-hidden rounded-2xl" style={{ animationDelay: `${i * 45}ms` }}>
                 <button type="button" onClick={() => toggle(i)} className="flex w-full items-start gap-3 p-4 text-left">
-                  <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-violet-500/20 text-xs font-bold text-violet-200">{i + 1}</span>
-                  <span className="flex-1 font-medium text-white">{it.question}</span>
-                  <Icon name="chevron" size={18} className={`mt-0.5 shrink-0 text-mute transition-transform duration-300 ${open.has(i) ? "rotate-90" : ""}`} />
+                  <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-violet-500/20 text-xs font-semibold text-lamp">{i + 1}</span>
+                  <span className="flex-1 font-medium text-paper">{it.question}</span>
+                  <Icon name="chevron" size={18} className={`mt-0.5 shrink-0 text-muted transition-transform duration-300 ${open.has(i) ? "rotate-90" : ""}`} />
                 </button>
                 <div className="grid transition-all duration-300" style={{ gridTemplateRows: open.has(i) ? "1fr" : "0fr" }}>
-                  <div className="overflow-hidden"><p className="border-t border-white/[0.07] px-4 py-3 pl-[3.25rem] text-[0.92rem] leading-relaxed text-slate-300">{it.answer}</p></div>
+                  <div className="overflow-hidden"><p className="border-t border-white/[0.07] px-4 py-3 pl-[3.25rem] text-[0.92rem] leading-relaxed text-paper/75">{it.answer}</p></div>
                 </div>
               </div>
             ))}

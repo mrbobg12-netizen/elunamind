@@ -41,15 +41,15 @@ export default function FlashcardsPage() {
         {tool.loading && <Panel><Skeleton lines={5} /></Panel>}
         {!tool.loading && cards.length > 0 && (
           <div className="pop-in">
-            <div className="mb-3 flex items-center justify-between text-sm text-mute"><span>Card {i + 1} of {cards.length}</span><span className="hidden sm:inline">← → to move · Space to flip</span></div>
-            <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-500" style={{ width: `${((i + 1) / cards.length) * 100}%` }} /></div>
+            <div className="mb-3 flex items-center justify-between text-sm text-muted"><span>Card {i + 1} of {cards.length}</span><span className="hidden sm:inline">← → to move · Space to flip</span></div>
+            <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-200 transition-all duration-500" style={{ width: `${((i + 1) / cards.length) * 100}%` }} /></div>
             <div className="flip-scene">
               <div className={`flip-card h-72 cursor-pointer sm:h-80 ${flipped ? "flipped" : ""}`} onClick={() => setFlipped((f) => !f)} role="button" tabIndex={0} aria-label="Flip card">
                 <div className="flip-face glass-strong grid place-items-center rounded-3xl p-8 text-center">
-                  <div><span className="chip chip-brand mb-4">Question</span><p className="text-xl font-semibold leading-snug text-white sm:text-2xl">{cards[i].question}</p><p className="mt-5 text-xs text-mute">Tap to reveal the answer</p></div>
+                  <div><span className="chip chip-brand mb-4">Question</span><p className="text-xl font-semibold leading-snug text-paper sm:text-2xl">{cards[i].question}</p><p className="mt-5 text-xs text-muted">Tap to reveal the answer</p></div>
                 </div>
                 <div className="flip-face flip-back grid place-items-center rounded-3xl border border-emerald-400/30 p-8 text-center" style={{ background: "linear-gradient(135deg, rgba(16,185,129,.18), rgba(34,211,238,.12))" }}>
-                  <div><span className="chip chip-ok mb-4">Answer</span><p className="text-lg leading-relaxed text-white sm:text-xl">{cards[i].answer}</p></div>
+                  <div><span className="chip chip-ok mb-4">Answer</span><p className="text-lg leading-relaxed text-paper sm:text-xl">{cards[i].answer}</p></div>
                 </div>
               </div>
             </div>

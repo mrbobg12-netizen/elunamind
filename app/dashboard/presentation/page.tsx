@@ -77,7 +77,7 @@ export default function PresentationPage() {
         <Panel>
           <div className="grid gap-4 sm:grid-cols-[1fr_200px]">
             <Field label="Presentation topic" hint={`${topic.length}/300`}><input className="input" maxLength={300} value={topic} onChange={(e) => setTopic(e.target.value)} onKeyDown={(e) => e.key === "Enter" && topic.trim() && generate()} placeholder="e.g. Renewable energy sources" /></Field>
-            <Field label={`Slides: ${count}`}><input type="range" min={5} max={12} value={count} onChange={(e) => setCount(+e.target.value)} className="mt-3 w-full accent-pink-500" /></Field>
+            <Field label={`Slides: ${count}`}><input type="range" min={5} max={12} value={count} onChange={(e) => setCount(+e.target.value)} className="mt-3 w-full accent-amber-400" /></Field>
           </div>
           <div className="mt-4"><GenerateButton loading={tool.loading} disabled={!topic.trim()} onClick={generate} label="Generate slides" /></div>
         </Panel>
@@ -87,7 +87,7 @@ export default function PresentationPage() {
         {!tool.loading && cur && (
           <div className="pop-in space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm text-mute">Slide {i + 1} of {slides.length}</span>
+              <span className="text-sm text-muted">Slide {i + 1} of {slides.length}</span>
               <div className="flex flex-wrap gap-2">
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEdit((v) => !v)}><Icon name="edit" size={14} /> {edit ? "Done editing" : "Edit slide"}</button>
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => stage.current?.requestFullscreen?.()}><Icon name="expand" size={14} /> Fullscreen</button>
@@ -98,28 +98,28 @@ export default function PresentationPage() {
             {exportErr && <ErrorBox error={exportErr} />}
 
             <div ref={stage} className="relative aspect-video w-full overflow-hidden rounded-3xl border border-white/10 p-[5%]" style={{ background: "radial-gradient(circle at 15% 10%, #2a1a5e, #0b0b14 60%)" }}>
-              <div className="orb -right-10 -top-10 h-40 w-40 bg-cyan-500/30" />
+              <div className="lamp-glow -right-10 -top-10 h-40 w-40 bg-indigo-500/18" />
               {edit ? (
                 <div className="relative h-full space-y-3 overflow-y-auto">
-                  <input className="input !text-lg font-bold" value={cur.title} onChange={(e) => upd({ title: e.target.value })} />
+                  <input className="input !text-lg font-semibold" value={cur.title} onChange={(e) => upd({ title: e.target.value })} />
                   <textarea className="input" rows={6} value={cur.bullets.join("\n")} onChange={(e) => upd({ bullets: e.target.value.split("\n") })} placeholder="One bullet per line" />
                 </div>
               ) : (
                 <div key={i} className="page-enter relative flex h-full flex-col justify-center">
-                  <h2 className={`font-bold leading-tight text-white ${i === 0 ? "text-[clamp(1.4rem,4.5vw,3rem)]" : "mb-[3%] text-[clamp(1.1rem,3vw,2.2rem)]"}`}>{cur.title}</h2>
-                  <ul className={`space-y-[1.2%] ${i === 0 ? "mt-3 text-[clamp(.8rem,1.8vw,1.3rem)] text-indigo-200" : "list-disc pl-[4%] text-[clamp(.8rem,2vw,1.4rem)] text-slate-200 marker:text-violet-400"}`}>
+                  <h2 className={`font-semibold leading-tight text-paper ${i === 0 ? "text-[clamp(1.4rem,4.5vw,3rem)]" : "mb-[3%] text-[clamp(1.1rem,3vw,2.2rem)]"}`}>{cur.title}</h2>
+                  <ul className={`space-y-[1.2%] ${i === 0 ? "mt-3 text-[clamp(.8rem,1.8vw,1.3rem)] text-indigo-200" : "list-disc pl-[4%] text-[clamp(.8rem,2vw,1.4rem)] text-paper/85 marker:text-lamp"}`}>
                     {cur.bullets.filter(Boolean).map((b, k) => <li key={k} className={i === 0 ? "list-none" : ""}>{b}</li>)}
                   </ul>
                 </div>
               )}
             </div>
 
-            {cur.notes && <Panel className="!p-4"><p className="mb-1 text-xs font-semibold uppercase tracking-wider text-mute">Speaker notes</p><p className="text-sm leading-relaxed text-slate-300">{cur.notes}</p></Panel>}
+            {cur.notes && <Panel className="!p-4"><p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">Speaker notes</p><p className="text-sm leading-relaxed text-paper/75">{cur.notes}</p></Panel>}
 
             <div className="flex items-center justify-between gap-3">
               <button type="button" className="btn btn-ghost" onClick={() => go(-1)} disabled={i === 0}><span className="rotate-180"><Icon name="chevron" size={16} /></span> Prev</button>
               <div className="flex max-w-[50%] gap-1.5 overflow-x-auto py-1">
-                {slides.map((_, k) => <button key={k} type="button" aria-label={`Slide ${k + 1}`} onClick={() => setI(k)} className={`h-2 shrink-0 rounded-full transition-all ${k === i ? "w-6 bg-violet-400" : "w-2 bg-white/20 hover:bg-white/40"}`} />)}
+                {slides.map((_, k) => <button key={k} type="button" aria-label={`Slide ${k + 1}`} onClick={() => setI(k)} className={`h-2 shrink-0 rounded-full transition-all ${k === i ? "w-6 bg-lamp" : "w-2 bg-white/20 hover:bg-white/40"}`} />)}
               </div>
               <button type="button" className="btn btn-primary" onClick={() => go(1)} disabled={i === slides.length - 1}>Next <Icon name="chevron" size={16} /></button>
             </div>

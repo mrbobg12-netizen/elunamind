@@ -1,19 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
-  themeColor: "#07070d",
+  themeColor: "#0b1020",
   width: "device-width",
   initialScale: 1,
 };
@@ -21,7 +24,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Eluna Mind — Smarter Learning",
   description:
-    "Eluna Mind helps you create notes, flashcards, tests, and presentations instantly with AI for faster and smarter studying.",
+    "An AI study tutor that explains step by step, turns your text into notes, quizzes you, and plans your exam week. Free to start.",
 };
 
 export default function RootLayout({
@@ -31,9 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} ${fraunces.variable} antialiased`}>
         <noscript>
           <style>{`.reveal{opacity:1!important;transform:none!important}`}</style>
         </noscript>

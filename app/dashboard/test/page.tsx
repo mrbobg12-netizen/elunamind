@@ -44,20 +44,20 @@ export default function TestPage() {
           <div className="space-y-6">
             {submitted && (
               <div className="pop-in glass-strong flex items-center gap-4 rounded-2xl p-5">
-                <div className="grid h-16 w-16 place-items-center rounded-2xl text-xl font-bold text-white" style={{ background: "linear-gradient(135deg,#8b5cf6,#22d3ee)" }}>{Math.round((score / total) * 100)}%</div>
-                <div><p className="text-lg font-semibold text-white">You scored {score} out of {total}</p><p className="text-sm text-mute">{score / total >= 0.8 ? "Excellent work!" : score / total >= 0.5 ? "Good effort. Review the red answers." : "Keep practising, you will get there."}</p></div>
+                <div className="grid h-16 w-16 place-items-center rounded-2xl text-xl font-semibold text-paper" style={{ background: "var(--lamp)" }}>{Math.round((score / total) * 100)}%</div>
+                <div><p className="text-lg font-semibold text-paper">You scored {score} out of {total}</p><p className="text-sm text-muted">{score / total >= 0.8 ? "Excellent work!" : score / total >= 0.5 ? "Good effort. Review the red answers." : "Keep practising, you will get there."}</p></div>
               </div>
             )}
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-violet-300">Multiple choice</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-lamp">Multiple choice</h2>
               {test.mcqs.map((q, qi) => (
                 <Panel key={qi} className="!p-4">
-                  <p className="mb-3 font-medium text-white">{qi + 1}. {q.question}</p>
+                  <p className="mb-3 font-medium text-paper">{qi + 1}. {q.question}</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {q.options.map((o, oi) => {
                       const picked = mcq[qi] === oi; const right = q.correctIndex === oi;
-                      const cls = submitted ? (right ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : picked ? "border-red-400/60 bg-red-500/15 text-red-100" : "border-white/10 text-slate-400") : picked ? "border-violet-400 bg-violet-500/20 text-white" : "border-white/10 text-slate-300 hover:border-white/25 hover:bg-white/5";
+                      const cls = submitted ? (right ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : picked ? "border-red-400/60 bg-red-500/15 text-red-100" : "border-white/10 text-slate-400") : picked ? "border-amber-400/60 bg-amber-400/15 text-paper" : "border-white/10 text-paper/75 hover:border-white/25 hover:bg-white/5";
                       return <button key={oi} type="button" disabled={submitted} onClick={() => setMcq((a) => a.map((v, k) => (k === qi ? oi : v)))} className={`rounded-xl border px-3.5 py-2.5 text-left text-sm transition ${cls}`}>{o}</button>;
                     })}
                   </div>
@@ -66,14 +66,14 @@ export default function TestPage() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-cyan-300">True or false</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-lamp/80">True or false</h2>
               {test.trueFalse.map((q, qi) => (
                 <Panel key={qi} className="!p-4">
-                  <p className="mb-3 text-white">{qi + 1}. {q.statement}</p>
+                  <p className="mb-3 text-paper">{qi + 1}. {q.statement}</p>
                   <div className="flex gap-2">
                     {[true, false].map((v) => {
                       const picked = tf[qi] === v; const right = q.answer === v;
-                      const cls = submitted ? (right ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : picked ? "border-red-400/60 bg-red-500/15 text-red-100" : "border-white/10 text-slate-400") : picked ? "border-violet-400 bg-violet-500/20 text-white" : "border-white/10 text-slate-300 hover:border-white/25";
+                      const cls = submitted ? (right ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : picked ? "border-red-400/60 bg-red-500/15 text-red-100" : "border-white/10 text-slate-400") : picked ? "border-amber-400/60 bg-amber-400/15 text-paper" : "border-white/10 text-paper/75 hover:border-white/25";
                       return <button key={String(v)} type="button" disabled={submitted} onClick={() => setTf((a) => a.map((x, k) => (k === qi ? v : x)))} className={`min-w-24 rounded-xl border px-4 py-2 text-sm transition ${cls}`}>{v ? "True" : "False"}</button>;
                     })}
                   </div>
@@ -88,7 +88,7 @@ export default function TestPage() {
                   const id = `${k}${qi}`;
                   return (
                     <Panel key={id} className="!p-4">
-                      <p className="mb-2 font-medium text-white">{qi + 1}. {q.question}</p>
+                      <p className="mb-2 font-medium text-paper">{qi + 1}. {q.question}</p>
                       <textarea className="input" rows={k === "long" ? 4 : 2} placeholder="Write your answer here (for your own practice)…" />
                       <button type="button" className="btn btn-ghost btn-sm mt-2" onClick={() => toggle(id)}>{shown.has(id) ? "Hide model answer" : "Show model answer"}</button>
                       {shown.has(id) && <p className="pop-in mt-3 rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-3 text-sm leading-relaxed text-emerald-50">{q.answer}</p>}

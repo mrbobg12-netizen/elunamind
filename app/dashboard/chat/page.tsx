@@ -141,11 +141,11 @@ export default function ChatPage() {
       <aside className={`${listOpen ? "absolute inset-y-14 left-0 z-10 flex w-72" : "hidden"} flex-col border-r border-white/[0.07] bg-[#0a0a14] lg:static lg:flex lg:w-72`}>
         <div className="p-3"><button type="button" onClick={newChat} className="btn btn-primary w-full"><Icon name="plus" size={16} /> New chat</button></div>
         <div className="flex-1 space-y-0.5 overflow-y-auto px-2 pb-3">
-          {chats.length === 0 && <p className="px-3 py-6 text-center text-sm text-mute">Your conversations will appear here.</p>}
+          {chats.length === 0 && <p className="px-3 py-6 text-center text-sm text-muted">Your conversations will appear here.</p>}
           {chats.map((c) => (
             <div key={c.id} className={`group flex items-center gap-1 rounded-xl pr-1 transition ${activeId === c.id ? "bg-white/10" : "hover:bg-white/5"}`}>
-              <button type="button" onClick={() => openChat(c.id)} className="min-w-0 flex-1 truncate px-3 py-2.5 text-left text-sm text-slate-300 group-hover:text-white">{c.title}</button>
-              <button type="button" onClick={() => removeChat(c.id)} aria-label="Delete chat" className="rounded-lg p-1.5 text-mute opacity-0 transition hover:bg-red-500/20 hover:text-red-300 group-hover:opacity-100"><Icon name="trash" size={15} /></button>
+              <button type="button" onClick={() => openChat(c.id)} className="min-w-0 flex-1 truncate px-3 py-2.5 text-left text-sm text-paper/75 group-hover:text-paper">{c.title}</button>
+              <button type="button" onClick={() => removeChat(c.id)} aria-label="Delete chat" className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-red-500/20 hover:text-red-300 group-hover:opacity-100"><Icon name="trash" size={15} /></button>
             </div>
           ))}
         </div>
@@ -162,14 +162,14 @@ export default function ChatPage() {
           <div className="mx-auto w-full max-w-3xl px-4 py-6">
             {empty ? (
               <div className="page-enter pt-6 text-center sm:pt-14">
-                <div className="float-y mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl text-white" style={{ background: "linear-gradient(135deg,#8b5cf6,#22d3ee)", boxShadow: "0 18px 40px -14px rgba(139,92,246,.9)" }}><Icon name="spark" size={30} /></div>
-                <h1 className="text-2xl font-bold text-white sm:text-3xl">How can I help you study today?</h1>
-                <p className="mt-2 text-sm text-mute">Ask in English, Urdu or Roman Urdu. I explain step by step.</p>
+                <div className="float-y mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl text-paper" style={{ background: "var(--lamp)", boxShadow: "0 18px 40px -14px rgba(139,92,246,.9)" }}><Icon name="spark" size={30} /></div>
+                <h1 className="text-2xl font-semibold text-paper sm:text-3xl">How can I help you study today?</h1>
+                <p className="mt-2 text-sm text-muted">Ask in English, Urdu or Roman Urdu. I explain step by step.</p>
                 <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
                   {SUGGESTIONS.map((s, i) => (
                     <button key={s.t} type="button" onClick={() => send(s.d)} style={{ animationDelay: `${i * 60}ms` }} className="glass card-hover pop-in rounded-2xl p-4 text-left">
-                      <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-violet-200"><Icon name={s.icon} size={16} /> {s.t}</span>
-                      <span className="text-sm text-slate-300">{s.d}</span>
+                      <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-lamp"><Icon name={s.icon} size={16} /> {s.t}</span>
+                      <span className="text-sm text-paper/75">{s.d}</span>
                     </button>
                   ))}
                 </div>
@@ -180,11 +180,11 @@ export default function ChatPage() {
                   const last = idx === messages.length - 1;
                   return m.role === "user" ? (
                     <div key={m.id} className="pop-in flex justify-end">
-                      <div className="max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-br-md px-4 py-3 text-[0.95rem] text-white" style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>{m.content}</div>
+                      <div className="max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-br-md px-4 py-3 text-[0.95rem] text-paper" style={{ background: "#1b2440" }}>{m.content}</div>
                     </div>
                   ) : (
                     <div key={m.id} className="pop-in group flex gap-3">
-                      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white" style={{ background: "linear-gradient(135deg,#8b5cf6,#22d3ee)" }}><Icon name="spark" size={16} /></span>
+                      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl text-paper" style={{ background: "var(--lamp)" }}><Icon name="spark" size={16} /></span>
                       <div className="min-w-0 flex-1">
                         {m.error ? (
                           <div className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-100">
@@ -211,7 +211,7 @@ export default function ChatPage() {
             <div className="glass-strong flex items-end gap-2 rounded-2xl p-2 focus-within:border-violet-400/60">
               <textarea
                 ref={taRef} value={input} rows={1} maxLength={2000} placeholder="Message your tutor…" disabled={left === 0 && !streaming}
-                className="max-h-40 min-h-[2.75rem] flex-1 resize-none bg-transparent px-3 py-2.5 text-[0.95rem] text-white outline-none placeholder:text-mute/70"
+                className="max-h-40 min-h-[2.75rem] flex-1 resize-none bg-transparent px-3 py-2.5 text-[0.95rem] text-paper outline-none placeholder:text-mute/70"
                 onChange={(e) => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`; }}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
               />
@@ -221,7 +221,7 @@ export default function ChatPage() {
                 <button type="submit" disabled={!input.trim() || left === 0} className="btn btn-primary h-11 w-11 shrink-0 !p-0" aria-label="Send"><Icon name="send" size={18} /></button>
               )}
             </div>
-            <div className="mt-2 flex items-center justify-between px-1 text-xs text-mute">
+            <div className="mt-2 flex items-center justify-between px-1 text-xs text-muted">
               <span>{left === 0 ? "Daily message limit reached." : `${left} of ${usage.chat.limit} messages left today`}{plan !== "premium" && left <= 3 && left > 0 ? " · running low" : ""}</span>
               {plan !== "premium" && left <= 5 ? <UpgradeButton label="Get more" className="btn btn-ghost btn-sm" /> : <span className="hidden sm:inline">Enter to send · Shift+Enter for a new line</span>}
             </div>

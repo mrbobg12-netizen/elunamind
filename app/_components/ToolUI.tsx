@@ -14,8 +14,8 @@ export function Panel({ children, className = "" }: { children: ReactNode; class
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-center justify-between text-sm font-medium text-slate-200">
-        {label}{hint && <span className="text-xs font-normal text-mute">{hint}</span>}
+      <span className="mb-1.5 flex items-center justify-between text-sm font-medium text-paper/85">
+        {label}{hint && <span className="text-xs font-normal text-muted">{hint}</span>}
       </span>
       {children}
     </label>
@@ -56,12 +56,12 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
 export function LockedPanel({ title }: { title: string }) {
   return (
     <Panel className="relative overflow-hidden text-center">
-      <div className="orb -left-10 -top-10 h-48 w-48 bg-violet-600/40" />
-      <div className="orb -bottom-10 -right-10 h-48 w-48 bg-cyan-500/30" />
+      <div className="lamp-glow -left-10 -top-10 h-48 w-48 bg-amber-400/18" />
+      <div className="lamp-glow -bottom-10 -right-10 h-48 w-48 bg-indigo-500/18" />
       <div className="relative mx-auto max-w-md py-8">
-        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-white/10 text-violet-200 float-y"><Icon name="lock" size={26} /></div>
-        <h2 className="text-xl font-bold text-white">{title} is a Premium tool</h2>
-        <p className="mx-auto mt-2 text-sm text-mute">Upgrade to unlock every study tool, higher daily limits and priority access.</p>
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-white/10 text-lamp float-y"><Icon name="lock" size={26} /></div>
+        <h2 className="text-xl font-semibold text-paper">{title} is a Premium tool</h2>
+        <p className="mx-auto mt-2 text-sm text-muted">Upgrade to unlock every study tool, higher daily limits and priority access.</p>
         <div className="mt-6 flex justify-center"><UpgradeButton /></div>
       </div>
     </Panel>
@@ -77,12 +77,12 @@ export function ToolFrame({ toolKey, children, wide = false }: { toolKey: Featur
   return (
     <div className={`page-enter mx-auto w-full px-4 py-6 sm:px-6 lg:py-9 ${wide ? "max-w-6xl" : "max-w-4xl"}`}>
       <header className="mb-6 flex flex-wrap items-center gap-4">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-white" style={{ background: `linear-gradient(135deg, ${tool.grad[0]}, ${tool.grad[1]})`, boxShadow: `0 12px 30px -12px ${tool.grad[0]}` }}>
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-paper" style={{ background: `linear-gradient(135deg, ${tool.grad[0]}, ${tool.grad[1]})`, boxShadow: `0 12px 30px -12px ${tool.grad[0]}` }}>
           <Icon name={tool.icon} size={24} />
         </span>
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold tracking-tight text-white">{tool.title}</h1>
-          <p className="text-sm text-mute">{tool.desc}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-paper">{tool.title}</h1>
+          <p className="text-sm text-muted">{tool.desc}</p>
         </div>
         {u.locked
           ? <span className="chip chip-brand"><Icon name="lock" size={12} /> Premium</span>

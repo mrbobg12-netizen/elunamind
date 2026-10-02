@@ -43,7 +43,7 @@ export default function CareerPage() {
         <Panel>
           <div className="mb-5 flex gap-1 rounded-xl bg-white/5 p-1">
             {tabs.map((t) => (
-              <button key={t.id} type="button" onClick={() => { setMode(t.id); setBlocks([]); }} className={`flex-1 rounded-lg px-2 py-2 text-sm font-medium transition ${mode === t.id ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow" : "text-mute hover:text-white"}`}>{t.label}</button>
+              <button key={t.id} type="button" onClick={() => { setMode(t.id); setBlocks([]); }} className={`flex-1 rounded-lg px-2 py-2 text-sm font-medium transition ${mode === t.id ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-paper shadow" : "text-muted hover:text-paper"}`}>{t.label}</button>
             ))}
           </div>
           {mode === "opt1" ? (
@@ -53,10 +53,10 @@ export default function CareerPage() {
               {mode === "opt3" && <Field label="Skills you already have"><input className="input" maxLength={200} value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. writing, Photoshop, tutoring" /></Field>}
               {questions.map((x) => (
                 <div key={x.q}>
-                  <p className="mb-2 text-sm font-medium text-slate-200">{x.q}</p>
+                  <p className="mb-2 text-sm font-medium text-paper/85">{x.q}</p>
                   <div className="flex flex-wrap gap-2">
                     {x.options.map((o) => (
-                      <button key={o} type="button" onClick={() => setAnswers((a) => ({ ...a, [x.q]: o }))} className={`rounded-full border px-3.5 py-1.5 text-sm transition ${answers[x.q] === o ? "border-violet-400 bg-violet-500/25 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:border-white/25"}`}>{o}</button>
+                      <button key={o} type="button" onClick={() => setAnswers((a) => ({ ...a, [x.q]: o }))} className={`rounded-full border px-3.5 py-1.5 text-sm transition ${answers[x.q] === o ? "border-amber-400/60 bg-amber-400/15 text-paper" : "border-white/10 bg-white/5 text-paper/75 hover:border-white/25"}`}>{o}</button>
                     ))}
                   </div>
                 </div>
@@ -71,7 +71,7 @@ export default function CareerPage() {
           <div className="space-y-3">
             <div className="flex justify-end"><CopyButton text={blocks.map((b) => `${b.title}\n${b.body}`).join("\n\n")} label="Copy all" /></div>
             {blocks.map((b, i) => (
-              <Panel key={i} className="pop-in" ><h3 className="mb-1 text-base font-semibold text-violet-200">{b.title}</h3><Markdown text={b.body} /></Panel>
+              <Panel key={i} className="pop-in" ><h3 className="mb-1 text-base font-semibold text-lamp">{b.title}</h3><Markdown text={b.body} /></Panel>
             ))}
           </div>
         )}

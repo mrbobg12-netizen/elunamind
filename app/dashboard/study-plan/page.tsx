@@ -21,8 +21,8 @@ export default function StudyPlanPage() {
         <Panel>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2"><Field label="What are you studying?" hint={`${subject.length}/300`}><input className="input" maxLength={300} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Organic Chemistry for my final exam" /></Field></div>
-            <Field label={`Days until your exam: ${days}`}><input type="range" min={1} max={60} value={days} onChange={(e) => setDays(+e.target.value)} className="w-full accent-violet-500" /></Field>
-            <Field label={`Hours you can study per day: ${hours}`}><input type="range" min={0.5} max={12} step={0.5} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full accent-cyan-400" /></Field>
+            <Field label={`Days until your exam: ${days}`}><input type="range" min={1} max={60} value={days} onChange={(e) => setDays(+e.target.value)} className="w-full accent-amber-400" /></Field>
+            <Field label={`Hours you can study per day: ${hours}`}><input type="range" min={0.5} max={12} step={0.5} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full accent-amber-400" /></Field>
           </div>
           <div className="mt-4"><GenerateButton loading={tool.loading} disabled={!subject.trim()} onClick={generate} label="Build my plan" /></div>
         </Panel>
