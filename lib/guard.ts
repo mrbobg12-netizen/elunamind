@@ -47,8 +47,13 @@ export async function guard(req: Request, feature: Feature): Promise<GuardOk | G
     auth,
     rule,
     consume: async () => {
-      const allowed = await consumeUsage(auth.user.id, feature, limit);
-      if (allowed) return null;
+      const result = await consumeUsage(auth.user.id, feature, limit);
+      if (result === "ok") return null;
+      if (result === "error")
+        return NextResponse.json(
+          { error: "We could not check your daily allowance just now. Please try again in a moment." },
+          { status: 503 }
+        );
       return premium
         ? NextResponse.json({ error: "Daily fair-use limit reached. Please try again tomorrow." }, { status: 429 })
         : NextResponse.json(

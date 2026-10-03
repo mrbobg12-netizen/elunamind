@@ -13,6 +13,9 @@ export async function POST(req: Request) {
     if (auth.plan === "premium")
       return NextResponse.json({ error: "You're already on Premium." }, { status: 400 });
 
+    // Demo mode: show the checkout flow without touching a payment provider.
+    if (process.env.DEMO_CHECKOUT === "1") return NextResponse.json({ url: "/checkout/demo" });
+
     const { data: profile } = await supabaseAdmin()
       .from("profiles").select("stripe_customer_id").eq("id", auth.user.id).single();
 

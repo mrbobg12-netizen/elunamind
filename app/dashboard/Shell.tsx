@@ -80,6 +80,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="space-y-1">
         <NavLink href="/dashboard" icon="home" label="Dashboard" active={is("/dashboard")} onClick={onNavigate} />
         <NavLink href="/dashboard/chat" icon="chat" label="AI Tutor Chat" active={is("/dashboard/chat")} onClick={onNavigate} />
+        <NavLink href="/dashboard/account" icon="user" label="Your account" active={is("/dashboard/account")} onClick={onNavigate} />
       </nav>
       <div>
         <p className="mb-1.5 px-3 text-[0.68rem] font-semibold uppercase tracking-wider text-mute/70">Study tools</p>
