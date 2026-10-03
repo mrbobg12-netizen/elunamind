@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser, type AuthResult } from "./auth";
-import { RULES, type Feature, type Rule } from "./plans";
+import { getSettings } from "./settings";
+import type { Feature, Rule } from "./plans";
 import { consumeUsage, refundUsage } from "./usage";
 
 export type GuardOk = {
@@ -19,20 +20,28 @@ const fail = (status: number, error: string, extra: Record<string, unknown> = {}
   res: NextResponse.json({ error, ...extra }, { status }),
 });
 
-// Step 1 of every AI route: kill switch -> login -> plan gate.
+// Step 1 of every AI route: kill switch -> login -> not blocked -> plan gate.
+// Limits come from the admin settings (database), falling back to the defaults in plans.ts.
 export async function guard(req: Request, feature: Feature): Promise<GuardOk | GuardFail> {
-  if (process.env.AI_DISABLED === "1")
-    return fail(503, "AI features are temporarily unavailable. Please try again later.");
+  const settings = await getSettings();
+
+  if (process.env.AI_DISABLED === "1" || settings.flags.aiDisabled)
+    return fail(503, "AI features are paused right now. Please try again later.");
 
   const auth = await requireUser(req);
   if (!auth) return fail(401, "Please log in to use this feature.");
+  if (auth.blocked)
+    return fail(403, auth.blockedReason?.trim() || "This account has been suspended. Contact support if you think this is a mistake.");
 
-  const rule = RULES[feature];
+  const rule = settings.rules[feature];
   const premium = auth.plan === "premium";
   if (rule.premiumOnly && !premium)
     return fail(403, `${rule.label} is available for Premium users only.`, { upgrade: true });
 
   const limit = premium ? rule.premiumPerDay : rule.freePerDay;
+  if (limit <= 0)
+    return fail(403, `${rule.label} is not available on your plan right now.`, { upgrade: !premium });
+
   return {
     ok: true,
     auth,

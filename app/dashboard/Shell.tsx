@@ -64,7 +64,7 @@ function UsageMeter() {
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { usage, email, plan } = useUsage();
+  const { usage, email, plan, role } = useUsage();
   const free = TOOLS.filter((t) => !t.premium && t.key !== "chat");
   const prem = TOOLS.filter((t) => t.premium);
   const is = (href: string) => pathname === href;
@@ -94,6 +94,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </div>
       <div className="mt-auto space-y-3 pt-2">
+        {role === "admin" && (
+          <Link href="/admin" className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-sm text-lamp transition hover:bg-amber-400/15">
+            <Icon name="shield" size={18} /> Admin panel
+          </Link>
+        )}
         <UsageMeter />
         <div className="flex items-center gap-3 rounded-xl px-2 py-1.5">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-200 text-sm font-semibold text-paper">{(email[0] || "U").toUpperCase()}</span>

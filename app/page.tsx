@@ -8,6 +8,7 @@ import { WhyUs } from "./_components/landing/WhyUs";
 import { PricingCards } from "./_components/landing/PricingCards";
 import { Faq } from "./_components/landing/Faq";
 import { Footer } from "./_components/landing/Footer";
+import { getSettings } from "../lib/settings";
 
 const STEPS = [
   { t: "Create a free account", d: "Email and a password. No card, nothing to install." },
@@ -25,9 +26,11 @@ function SectionHead({ kicker, title, sub }: { kicker: string; title: string; su
   );
 }
 
-export default function Landing() {
-  const free = TOOLS.filter((t) => !t.premium);
-  const premium = TOOLS.filter((t) => t.premium);
+export default async function Landing() {
+  const { branding, rules } = await getSettings();
+  const isPremium = (key: (typeof TOOLS)[number]["key"]) => rules[key].premiumOnly;
+  const free = TOOLS.filter((t) => !isPremium(t.key));
+  const premium = TOOLS.filter((t) => isPremium(t.key));
   const loop = [...TOOLS, ...TOOLS];
 
   return (
@@ -41,18 +44,13 @@ export default function Landing() {
         <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.02fr_1fr]">
           <div className="page-enter">
             <p className="chip chip-brand mb-6">Built for late-night study</p>
-            <h1 className="text-[2.6rem] sm:text-6xl">
-              The tutor who is<br />still awake at 1&nbsp;a.m.
-            </h1>
-            <p className="lede mt-6 text-lg">
-              Ask anything and get it explained step by step. Turn a chapter into notes, quiz yourself,
-              and plan the week before your exam. In English, Urdu or Roman Urdu.
-            </p>
+            <h1 className="text-[2.6rem] sm:text-6xl">{branding.heroHeadline}</h1>
+            <p className="lede mt-6 text-lg">{branding.heroSubline}</p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link href="/login?mode=signup&next=/dashboard" className="btn btn-primary !px-6 !py-3.5 text-base">Start free</Link>
               <Link href="/#features" className="btn btn-ghost !px-6 !py-3.5 text-base">See the tools</Link>
             </div>
-            <p className="mt-5 text-sm text-muted">Free plan, no card. 15 tutor messages and 2 note sets every day.</p>
+            <p className="mt-5 text-sm text-muted">Free plan, no card. {rules.chat.freePerDay} tutor messages and {rules.notes.freePerDay} note sets every day.</p>
           </div>
           <div className="float-y"><DemoLoop /></div>
         </div>
@@ -82,7 +80,7 @@ export default function Landing() {
                     <Icon name={t.icon} size={22} className="text-lamp" />
                     <span className="chip chip-ok">Free</span>
                   </div>
-                  <h3 className="font-display text-lg text-paper">{t.title}</h3>
+                  <h3 className="font-display text-lg text-paper">{rules[t.key].label || t.title}</h3>
                   <p className="lede mt-1.5 text-sm">{t.desc}</p>
                 </div>
               ))}

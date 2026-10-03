@@ -8,7 +8,7 @@ const ITEMS = [
   ["Can I ask in Urdu or Roman Urdu?", "Yes. The tutor answers in whatever language you write in, including English, Urdu and Roman Urdu."],
   ["Are my chats and notes kept?", "Chats and generated notes are saved to your account so you can reopen them later. You can delete any of them whenever you want."],
   ["Is the AI always right?", "No. AI gets facts, numbers and citations wrong sometimes. Use it to understand faster, then check anything that matters."],
-  ["How do I cancel?", "Email support@elunamind.app and your subscription stops at the end of the billing period. Your free plan stays."],
+  ["How do I cancel?", "Email us and your subscription stops at the end of the billing period. Your free plan stays."],
 ] as const;
 
 export function Faq() {

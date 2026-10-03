@@ -21,6 +21,14 @@ export function LoginForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(sp.get("error") ? "Sign-in failed. Please try again." : "");
   const [info, setInfo] = useState("");
+  const [signupsOpen, setSignupsOpen] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/signup-status")
+      .then((r) => r.json())
+      .then((j) => setSignupsOpen(j.signupsOpen !== false))
+      .catch(() => {});
+  }, []);
 
   // already signed in -> go straight in
   useEffect(() => {
@@ -38,6 +46,7 @@ export function LoginForm() {
         if (error) { setError(error.message); return; }
         window.location.assign(next);
       } else {
+        if (!signupsOpen) { setError("New sign-ups are paused right now. Please check back soon."); return; }
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(), password,
           options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
@@ -88,8 +97,8 @@ export function LoginForm() {
 
           <div className="mt-6 flex gap-1 rounded-xl bg-white/5 p-1">
             {(["signin", "signup"] as const).map((m) => (
-              <button key={m} type="button" onClick={() => { setMode(m); setError(""); setInfo(""); }} className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${mode === m ? "bg-lamp text-[#231704]" : "text-muted hover:text-paper"}`}>
-                {m === "signin" ? "Log in" : "Sign up"}
+              <button key={m} type="button" disabled={m === "signup" && !signupsOpen} onClick={() => { setMode(m); setError(""); setInfo(""); }} className={`flex-1 rounded-lg py-2 text-sm font-medium transition disabled:opacity-50 ${mode === m ? "bg-lamp text-[#231704]" : "text-muted hover:text-paper"}`}>
+                {m === "signin" ? "Log in" : signupsOpen ? "Sign up" : "Sign up paused"}
               </button>
             ))}
           </div>

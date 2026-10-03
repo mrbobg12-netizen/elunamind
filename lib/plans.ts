@@ -1,4 +1,6 @@
-// ONE place that defines what each plan can do. Change limits here, nowhere else.
+// Default plan rules. These are the FALLBACK values.
+// The admin panel stores overrides in the `app_settings` table, and `lib/settings.ts`
+// merges them over these. Server code should read getSettings(), not DEFAULT_RULES.
 export type Plan = "free" | "premium";
 
 export type Feature =
@@ -14,7 +16,7 @@ export type Rule = {
   maxTokens: number;       // max AI output tokens
 };
 
-export const RULES: Record<Feature, Rule> = {
+export const DEFAULT_RULES: Record<Feature, Rule> = {
   chat:         { label: "Chat",         premiumOnly: false, freePerDay: 15, premiumPerDay: 300, maxInputChars: 2000, maxTokens: 1200 },
   notes:        { label: "Notes",        premiumOnly: false, freePerDay: 2, premiumPerDay: 100, maxInputChars: 8000, maxTokens: 900 },
   qna:          { label: "Q&A",          premiumOnly: false, freePerDay: 1, premiumPerDay: 100, maxInputChars: 300,  maxTokens: 1800 },
@@ -29,15 +31,15 @@ export const RULES: Record<Feature, Rule> = {
   citations:    { label: "Citations",    premiumOnly: true,  freePerDay: 0, premiumPerDay: 60,  maxInputChars: 300,  maxTokens: 1200 },
 };
 
-export const FEATURES = Object.keys(RULES) as Feature[];
+export const FEATURES = Object.keys(DEFAULT_RULES) as Feature[];
 
 export type UsageSummary = Record<Feature, { used: number; limit: number; locked: boolean }>;
 
 // Pure helper (safe on client and server): turns today's counters into per-feature usage.
-export function buildUsageSummary(plan: Plan, counts: Record<string, number>): UsageSummary {
+export function buildUsageSummary(plan: Plan, counts: Record<string, number>, rules: Record<Feature, Rule> = DEFAULT_RULES): UsageSummary {
   const out = {} as UsageSummary;
   for (const f of FEATURES) {
-    const r = RULES[f];
+    const r = rules[f];
     const premium = plan === "premium";
     const locked = !premium && r.premiumOnly;
     out[f] = {
