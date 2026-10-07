@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(req: Request, { params }: Ctx) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "blog");
   if (!gate.ok) return gate.res;
   const { id } = await params;
 
@@ -17,7 +17,7 @@ export async function GET(req: Request, { params }: Ctx) {
 }
 
 export async function PATCH(req: Request, { params }: Ctx) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "blog");
   if (!gate.ok) return gate.res;
   const { id } = await params;
   const b = await body(req);
@@ -46,7 +46,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 }
 
 export async function DELETE(req: Request, { params }: Ctx) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "blog");
   if (!gate.ok) return gate.res;
   const { id } = await params;
 

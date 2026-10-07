@@ -5,7 +5,7 @@ import { supabase } from "../../../lib/supabase/browser";
 import { Icon } from "../../_components/Icon";
 import { Markdown } from "../../_components/Markdown";
 import { useUsage } from "../../_components/UsageProvider";
-import { UpgradeButton } from "../../_components/Upgrade";
+import { TrialBadge, UpgradeButton, trialDaysLeft } from "../../_components/Upgrade";
 import { TOOLS } from "../../_components/tools";
 
 function Card({ title, children, icon }: { title: string; children: React.ReactNode; icon?: Parameters<typeof Icon>[0]["name"] }) {
@@ -20,7 +20,7 @@ function Card({ title, children, icon }: { title: string; children: React.ReactN
 }
 
 export default function AccountPage() {
-  const { plan, email, usage } = useUsage();
+  const { plan, email, usage, onTrial, trialEndsAt, trialEligible } = useUsage();
   const [joined, setJoined] = useState<string | null>(null);
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -76,12 +76,12 @@ export default function AccountPage() {
               <div className="min-w-0">
                 <p className="truncate font-display text-lg text-paper">{email || "Your account"}</p>
                 <p className="mt-0.5 text-sm text-muted">
-                  {premium ? "Premium plan" : "Free plan"}
+                  {onTrial ? "Premium trial" : premium ? "Premium plan" : "Free plan"}
                   {joined && ` · joined ${new Date(joined).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`}
                 </p>
               </div>
             </div>
-            {premium ? <span className="chip chip-brand">Premium</span> : <UpgradeButton label="Upgrade" className="btn btn-primary btn-sm" />}
+            {onTrial ? <TrialBadge /> : premium ? <span className="chip chip-brand">Premium</span> : <UpgradeButton label="Upgrade" className="btn btn-primary btn-sm" />}
           </div>
         </section>
 
@@ -105,9 +105,21 @@ export default function AccountPage() {
             })}
           </ul>
           <p className="mt-4 text-xs text-muted">Everything resets at midnight UTC.</p>
-          {!premium && (
+          {onTrial ? (
             <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/25 bg-amber-400/5 p-4">
-              <p className="min-w-0 flex-1 text-sm text-paper/85">Premium raises every limit and unlocks the seven locked tools.</p>
+              <p className="min-w-0 flex-1 text-sm text-paper/85">
+                Your trial has {trialDaysLeft(trialEndsAt)} day{trialDaysLeft(trialEndsAt) === 1 ? "" : "s"} left. When it ends you drop back to the
+                free plan automatically — no card was taken and nothing will be charged.
+              </p>
+              <UpgradeButton label="Keep Premium" className="btn btn-primary btn-sm" />
+            </div>
+          ) : !premium && (
+            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/25 bg-amber-400/5 p-4">
+              <p className="min-w-0 flex-1 text-sm text-paper/85">
+                {trialEligible
+                  ? "Premium raises every limit and unlocks every locked tool. Try it free first — no card needed."
+                  : "Premium raises every limit and unlocks every locked tool."}
+              </p>
               <UpgradeButton label="See Premium" className="btn btn-primary btn-sm" />
             </div>
           )}
@@ -136,7 +148,10 @@ export default function AccountPage() {
             <ul className="space-y-3 text-sm text-paper/85">
               <li className="flex items-start gap-2.5">
                 <Icon name="check" size={15} className="mt-0.5 shrink-0 text-mint" />
-                {premium ? "You are on Premium. Email support to cancel or change your plan." : "You are on the free plan. Nothing is charged."}
+                {onTrial
+                  ? "You are on a free trial. It ends on its own and no payment details are held."
+                  : premium ? "You are on Premium. Open a support ticket to cancel or change your plan."
+                  : "You are on the free plan. Nothing is charged."}
               </li>
               <li className="flex items-start gap-2.5">
                 <Icon name="check" size={15} className="mt-0.5 shrink-0 text-mint" />
@@ -145,6 +160,7 @@ export default function AccountPage() {
             </ul>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link href="/pricing" className="btn btn-ghost btn-sm">View plans</Link>
+              <Link href="/dashboard/support" className="btn btn-ghost btn-sm"><Icon name="help" size={14} /> Contact support</Link>
               <button type="button" className="btn btn-ghost btn-sm"
                 onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}>
                 <Icon name="logout" size={14} /> Sign out

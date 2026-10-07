@@ -1,13 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Icon } from "../../_components/Icon";
+import { FEATURES } from "../../../lib/plans";
 import { Card, Field, Loading, Page, useToast } from "../ui";
 
 type Rule = { label: string; premiumOnly: boolean; freePerDay: number; premiumPerDay: number; maxInputChars: number; maxTokens: number };
 type Pricing = { premiumPrice: string; premiumPeriod: string; freeName: string; premiumName: string; premiumBlurb: string; premiumFeatures: string[] };
 type Settings = { rules: Record<string, Rule>; pricing: Pricing };
 
-const ORDER = ["chat", "notes", "qna", "studyPlan", "career", "flashcards", "test", "visualMap", "presentation", "grammar", "paraphrase", "citations"];
+// Reading the order from the feature list means a new tool is editable here the
+// day it ships, instead of quietly having limits no admin can see.
+const PREFERRED = ["chat", "upload", "transcript", "notes", "translate", "qna", "studyPlan", "career"];
+const ORDER = [...PREFERRED.filter((f) => (FEATURES as string[]).includes(f)), ...FEATURES.filter((f) => !PREFERRED.includes(f))];
 
 export default function PlansPage() {
   const [s, setS] = useState<Settings | null>(null);

@@ -47,7 +47,7 @@ function SidePanel() {
         </div>
 
         <ul className="mt-10 space-y-3.5 text-sm text-paper/80">
-          {["Step-by-step answers, not just the final one", "English, Urdu or Roman Urdu", "Free to start, no card needed"].map((t) => (
+          {["Step-by-step answers, not just the final one", "Reads your own PDFs, slides and recordings", "Free to start, no card needed"].map((t) => (
             <li key={t} className="flex items-center gap-3">
               <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint/15 text-mint"><Icon name="check" size={13} /></span>{t}
             </li>

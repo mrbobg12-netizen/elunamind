@@ -48,9 +48,15 @@ export default function DiagnosePage() {
 
       {!data && !error && <div className="mt-10 text-center"><span className="spinner mx-auto" /></div>}
 
+      {data && typeof data.verdict === "string" && (
+        <p className={`mt-6 rounded-xl border p-4 text-sm ${/FIX/i.test(data.verdict) ? "border-amber-400/40 bg-amber-400/10 text-paper" : "border-mint/30 bg-mint/10 text-mint"}`}>
+          {data.verdict}
+        </p>
+      )}
+
       {data && (
         <div className="mt-6 space-y-5">
-          {Object.entries(data).map(([section, value]) => (
+          {Object.entries(data).filter(([k]) => k !== "verdict").map(([section, value]) => (
             <section key={section} className="glass rounded-2xl p-5">
               <h2 className="mb-3 font-display text-base text-paper first-letter:uppercase">
                 {section.replace(/([A-Z])/g, " $1").toLowerCase()}

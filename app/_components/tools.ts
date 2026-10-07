@@ -13,8 +13,10 @@ export type Tool = {
 };
 
 export const TOOLS: Tool[] = [
-  { key: "chat", slug: "chat", title: "AI Tutor Chat", short: "Chat", desc: "Ask anything and get clear, step-by-step answers in English, Urdu or Roman Urdu.", icon: "chat", premium: false, grad: ["#8b5cf6", "#22d3ee"] },
+  { key: "chat", slug: "chat", title: "AI Tutor Chat", short: "Chat", desc: "Ask anything — or attach a PDF, slide deck or photo of your notes — and get it explained step by step.", icon: "chat", premium: false, grad: ["#8b5cf6", "#22d3ee"] },
   { key: "notes", slug: "notes", title: "Smart Notes", short: "Notes", desc: "Turn any text into clean, structured study notes and keep them in your history.", icon: "notes", premium: false, grad: ["#6366f1", "#8b5cf6"] },
+  { key: "transcript", slug: "transcript", title: "Lecture Transcripts", short: "Transcript", desc: "Turn a lecture recording or voice note into a clean transcript plus revision notes.", icon: "mic", premium: false, grad: ["#06b6d4", "#6366f1"] },
+  { key: "translate", slug: "translate", title: "Translate", short: "Translate", desc: "Move notes, passages or whole handouts into another language without losing the meaning.", icon: "translate", premium: false, grad: ["#14b8a6", "#8b5cf6"] },
   { key: "qna", slug: "qna", title: "Q&A Practice", short: "Q&A", desc: "Get 10 practice questions with answers on any topic, from basics to critical thinking.", icon: "qna", premium: false, grad: ["#0ea5e9", "#6366f1"] },
   { key: "studyPlan", slug: "study-plan", title: "Study Planner", short: "Planner", desc: "A day-by-day plan built around your exam date and the hours you really have.", icon: "plan", premium: false, grad: ["#10b981", "#22d3ee"] },
   { key: "career", slug: "career", title: "Career Guide", short: "Career", desc: "Roadmaps, career-path matching and realistic side-income ideas.", icon: "career", premium: false, grad: ["#f59e0b", "#f472b6"] },

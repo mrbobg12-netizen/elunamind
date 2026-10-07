@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import "katex/dist/katex.min.css";
+import "highlight.js/styles/github-dark.css";
 import "./globals.css";
 
 const inter = Inter({

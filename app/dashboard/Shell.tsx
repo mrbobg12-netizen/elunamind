@@ -7,7 +7,7 @@ import { Icon } from "../_components/Icon";
 import { Logo } from "../_components/Logo";
 import { TOOLS } from "../_components/tools";
 import { useUsage } from "../_components/UsageProvider";
-import { UpgradeButton } from "../_components/Upgrade";
+import { TrialBadge, UpgradeButton, trialDaysLeft } from "../_components/Upgrade";
 
 function NavLink({ href, icon, label, active, locked, onClick }: { href: string; icon: Parameters<typeof Icon>[0]["name"]; label: string; active: boolean; locked?: boolean; onClick?: () => void }) {
   return (
@@ -22,7 +22,7 @@ function NavLink({ href, icon, label, active, locked, onClick }: { href: string;
 }
 
 function UsageMeter() {
-  const { plan, usage } = useUsage();
+  const { plan, usage, onTrial, trialEndsAt } = useUsage();
   const rows = TOOLS.filter((t) => !usage[t.key].locked && (plan === "premium" ? t.key === "chat" : true));
   const totalUsed = rows.reduce((a, t) => a + usage[t.key].used, 0);
   const totalLimit = rows.reduce((a, t) => a + usage[t.key].limit, 0);
@@ -38,8 +38,12 @@ function UsageMeter() {
           <defs><linearGradient id="ringg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8b5cf6" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs>
         </svg>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-paper">{plan === "premium" ? "Premium plan" : "Free plan"}</p>
-          <p className="text-xs text-muted">{pct}% of today&apos;s {plan === "premium" ? "chat" : "free"} limit used</p>
+          <p className="text-sm font-semibold text-paper">{onTrial ? "Premium trial" : plan === "premium" ? "Premium plan" : "Free plan"}</p>
+          <p className="text-xs text-muted">
+            {onTrial
+              ? `${trialDaysLeft(trialEndsAt)} day${trialDaysLeft(trialEndsAt) === 1 ? "" : "s"} left · ${pct}% of today's limit used`
+              : `${pct}% of today's ${plan === "premium" ? "chat" : "free"} limit used`}
+          </p>
         </div>
       </div>
       <ul className="space-y-2.5">
@@ -57,14 +61,20 @@ function UsageMeter() {
         })}
       </ul>
       <p className="mt-3 text-[0.68rem] text-mute/80">Limits reset every day.</p>
-      {plan !== "premium" && <div className="mt-3"><UpgradeButton label="Go Premium" className="btn btn-primary btn-sm w-full" /></div>}
+      {onTrial && (
+        <div className="mt-3 space-y-2">
+          <p className="text-[0.68rem] text-mute/80">When the trial ends you keep the Free plan — nothing is charged.</p>
+          <UpgradeButton label="Keep Premium" className="btn btn-primary btn-sm w-full" />
+        </div>
+      )}
+      {!onTrial && plan !== "premium" && <div className="mt-3"><UpgradeButton label="Go Premium" className="btn btn-primary btn-sm w-full" /></div>}
     </div>
   );
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { usage, email, plan, role } = useUsage();
+  const { usage, email, plan, role, onTrial, supportEnabled } = useUsage();
   const free = TOOLS.filter((t) => !t.premium && t.key !== "chat");
   const prem = TOOLS.filter((t) => t.premium);
   const is = (href: string) => pathname === href;
@@ -80,7 +90,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="space-y-1">
         <NavLink href="/dashboard" icon="home" label="Dashboard" active={is("/dashboard")} onClick={onNavigate} />
         <NavLink href="/dashboard/chat" icon="chat" label="AI Tutor Chat" active={is("/dashboard/chat")} onClick={onNavigate} />
+        <NavLink href="/dashboard/files" icon="folder" label="My Files" active={is("/dashboard/files")} onClick={onNavigate} />
         <NavLink href="/dashboard/account" icon="user" label="Your account" active={is("/dashboard/account")} onClick={onNavigate} />
+        {supportEnabled !== false && (
+          <NavLink href="/dashboard/support" icon="help" label="Help & support" active={is("/dashboard/support")} onClick={onNavigate} />
+        )}
       </nav>
       <div>
         <p className="mb-1.5 px-3 text-[0.68rem] font-semibold uppercase tracking-wider text-mute/70">Study tools</p>
@@ -95,15 +109,15 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </div>
       <div className="mt-auto space-y-3 pt-2">
-        {role === "admin" && (
+        {(role === "admin" || role === "sub_admin") && (
           <Link href="/admin" className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-sm text-lamp transition hover:bg-amber-400/15">
-            <Icon name="shield" size={18} /> Admin panel
+            <Icon name="shield" size={18} /> {role === "admin" ? "Admin panel" : "Staff panel"}
           </Link>
         )}
         <UsageMeter />
         <div className="flex items-center gap-3 rounded-xl px-2 py-1.5">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-200 text-sm font-semibold text-paper">{(email[0] || "U").toUpperCase()}</span>
-          <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-paper">{email.split("@")[0] || "You"}</p><p className="truncate text-xs text-muted">{plan === "premium" ? "Premium" : "Free plan"}</p></div>
+          <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-paper">{email.split("@")[0] || "You"}</p><p className="truncate text-xs text-muted">{onTrial ? "Premium trial" : plan === "premium" ? "Premium" : "Free plan"}</p></div>
           <button type="button" onClick={logout} title="Log out" className="rounded-lg p-2 text-muted transition hover:bg-white/10 hover:text-paper"><Icon name="logout" size={18} /></button>
         </div>
       </div>

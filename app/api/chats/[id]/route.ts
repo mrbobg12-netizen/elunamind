@@ -12,9 +12,26 @@ export async function GET(req: Request, { params }: Ctx) {
   const db = supabaseAdmin();
   const { data: chat } = await db.from("chats").select("id,title").eq("id", id).eq("user_id", auth.user.id).maybeSingle();
   if (!chat) return NextResponse.json({ error: "Chat not found." }, { status: 404 });
-  const { data } = await db.from("chat_messages").select("id,role,content,created_at")
+  // The joined upload lets a reopened chat still show which file a question was
+  // about. On a database where migration 006 has not been run the column does
+  // not exist, so fall back to the plain history rather than failing the page.
+  const joined = await db.from("chat_messages")
+    .select("id,role,content,created_at,uploads(file_name)")
     .eq("chat_id", id).order("created_at", { ascending: true }).limit(500);
-  return NextResponse.json({ chat, messages: data ?? [] });
+
+  if (joined.error) {
+    console.error("chat history join unavailable:", joined.error.message);
+    const { data } = await db.from("chat_messages").select("id,role,content,created_at")
+      .eq("chat_id", id).order("created_at", { ascending: true }).limit(500);
+    return NextResponse.json({ chat, messages: data ?? [] });
+  }
+
+  const messages = (joined.data ?? []).map((m) => {
+    const up = m.uploads as { file_name: string } | { file_name: string }[] | null;
+    const file = Array.isArray(up) ? up[0]?.file_name : up?.file_name;
+    return { id: m.id, role: m.role, content: m.content, created_at: m.created_at, file: file ?? null };
+  });
+  return NextResponse.json({ chat, messages });
 }
 
 export async function DELETE(req: Request, { params }: Ctx) {

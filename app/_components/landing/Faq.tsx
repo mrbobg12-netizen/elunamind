@@ -5,7 +5,8 @@ import { Icon } from "../Icon";
 const ITEMS = [
   ["Is it really free to start?", "Yes. Create an account and use the tutor chat, smart notes, Q&A practice, study planner and career guide without paying. No card is needed."],
   ["What happens when I hit a daily limit?", "Every tool shows what you have left before you use it. Limits reset the next day, or Premium raises them well above everyday use."],
-  ["Can I ask in Urdu or Roman Urdu?", "Yes. The tutor answers in whatever language you write in, including English, Urdu and Roman Urdu."],
+  ["Can I use my own course material?", "Yes. Upload a PDF, a Word file, lecture slides, a photo of handwritten notes or a recording, and the tutor answers from that instead of guessing."],
+  ["Will this get me in trouble with my university?", "Used the way it is built — to understand, revise and check your own work — no. Handing in AI text as your own writing breaks almost every academic integrity policy, so we do not help you hide that it was used."],
   ["Are my chats and notes kept?", "Chats and generated notes are saved to your account so you can reopen them later. You can delete any of them whenever you want."],
   ["Is the AI always right?", "No. AI gets facts, numbers and citations wrong sometimes. Use it to understand faster, then check anything that matters."],
   ["How do I cancel?", "Email us and your subscription stops at the end of the billing period. Your free plan stays."],

@@ -32,6 +32,9 @@ export type Flags = {
   signupsOpen: boolean;
   blogEnabled: boolean;
   maintenanceNote: string;     // shown as a banner when not empty
+  trialEnabled: boolean;       // offer a no-card Premium trial to new accounts
+  trialDays: number;           // how long that trial lasts
+  supportEnabled: boolean;     // let users open support tickets in the app
 };
 
 export type Settings = {
@@ -43,12 +46,12 @@ export type Settings = {
 
 export const DEFAULT_BRANDING: Branding = {
   siteName: "Eluna Mind",
-  tagline: "An AI tutor for students who study late, in English, Urdu or Roman Urdu.",
+  tagline: "An AI tutor that reads your actual course material — for anyone studying anything.",
   logoUrl: "",
   supportEmail: "support@elunamind.app",
   heroHeadline: "The tutor who is still awake at 1 a.m.",
   heroSubline:
-    "Ask anything and get it explained step by step. Turn a chapter into notes, quiz yourself, and plan the week before your exam. In English, Urdu or Roman Urdu.",
+    "Upload the chapter, the slide deck or the lecture recording and get it explained step by step. Turn it into notes, quiz yourself, and plan the week before your exam.",
 };
 
 export const DEFAULT_PRICING: Pricing = {
@@ -65,6 +68,9 @@ export const DEFAULT_FLAGS: Flags = {
   signupsOpen: true,
   blogEnabled: true,
   maintenanceNote: "",
+  trialEnabled: true,
+  trialDays: 7,
+  supportEnabled: true,
 };
 
 export const DEFAULTS: Settings = {
@@ -107,6 +113,18 @@ function mergeRules(stored: unknown): Record<Feature, Rule> {
   return out;
 }
 
+function mergeFlags(stored: unknown): Flags {
+  const f = merge(DEFAULT_FLAGS, stored);
+  return {
+    ...f,
+    // The trial length is the only number here, and a 0 or a 9999 would both be
+    // a mistake rather than a policy, so it is clamped like every other limit.
+    trialDays: clampInt(f.trialDays, 1, 90, DEFAULT_FLAGS.trialDays),
+    trialEnabled: typeof f.trialEnabled === "boolean" ? f.trialEnabled : DEFAULT_FLAGS.trialEnabled,
+    supportEnabled: typeof f.supportEnabled === "boolean" ? f.supportEnabled : DEFAULT_FLAGS.supportEnabled,
+  };
+}
+
 function clampInt(v: unknown, min: number, max: number, fallback: number) {
   // Number("") and Number(null) are both 0, which would silently turn an empty
   // field into a real limit. Only accept a number or a non-empty numeric string.
@@ -130,7 +148,7 @@ export async function getSettings(): Promise<Settings> {
       rules: mergeRules(byKey.rules),
       branding: merge(DEFAULT_BRANDING, byKey.branding),
       pricing: merge(DEFAULT_PRICING, byKey.pricing),
-      flags: merge(DEFAULT_FLAGS, byKey.flags),
+      flags: mergeFlags(byKey.flags),
     };
   } catch (err) {
     // Never take the site down because settings could not be read.

@@ -2,13 +2,36 @@ import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
+import { getOwnedUpload } from "../../../lib/uploads";
+
+// A pasted passage is capped by the plan rule, but a file the student already
+// spent an upload on gets the fuller budget: cutting it to 8k would quietly
+// drop most of a lecture handout.
+const FILE_BUDGET = 24_000;
 
 export async function POST(req: Request) {
   const g = await guard(req, "notes");
   if (!g.ok) return g.res;
 
   const body = await readJson(req);
-  const text = clean(body.text, g.rule.maxInputChars);
+  const uploadId = typeof body.uploadId === "string" ? body.uploadId : null;
+
+  let text = clean(body.text, g.rule.maxInputChars);
+  let source = "";
+
+  if (uploadId) {
+    const up = await getOwnedUpload(g.auth.user.id, uploadId);
+    if (!up) return NextResponse.json({ error: "That file is no longer available." }, { status: 404 });
+    if (up.status !== "ready")
+      return NextResponse.json({ error: "That file is still being read. Give it a moment and try again." }, { status: 409 });
+    const fileText = (up.extracted_text ?? "").slice(0, FILE_BUDGET);
+    if (!fileText.trim())
+      return NextResponse.json({ error: "No readable text was found in that file." }, { status: 422 });
+    source = up.file_name;
+    // Anything typed alongside the file is an instruction about it, not the material.
+    text = text ? `${fileText}\n\n---\nThe student also asked: ${text}` : fileText;
+  }
+
   if (!text) return NextResponse.json({ error: "Text cannot be empty." }, { status: 400 });
 
   const blocked = await g.consume();
@@ -19,7 +42,7 @@ export async function POST(req: Request) {
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       messages: [
-        { role: "system", content: "You are an AI assistant that generates clean, structured, and detailed study notes." },
+        { role: "system", content: "You write clean, structured study notes in markdown. Use ## headings, bullet points and **bold** for key terms. Write every formula in LaTeX ($inline$ or $$display$$), never as plain text. Use fenced code blocks with a language for code, and markdown tables for comparisons. End with a short 'Check yourself' list of 3 questions." },
         { role: "user", content: `Generate detailed, structured study notes from this text:\n\n${text}` },
       ],
     });
@@ -29,7 +52,7 @@ export async function POST(req: Request) {
     // Save to the user's notes history (best effort: never fail the request because of it).
     let id: string | null = null;
     try {
-      const title = text.replace(/\s+/g, " ").slice(0, 60);
+      const title = (source || text).replace(/\s+/g, " ").slice(0, 60);
       const { data } = await supabaseAdmin()
         .from("notes_history").insert({ user_id: g.auth.user.id, title, content: notes }).select("id").single();
       id = (data?.id as string) ?? null;

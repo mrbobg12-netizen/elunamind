@@ -17,7 +17,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const [counts, settings] = await Promise.all([getUsageToday(auth.user.id), getSettings()]);
   void touchLastSeen(auth.user.id); // fire-and-forget "last seen" stamp
   return (
-    <UsageProvider initial={{ plan: auth.plan, email: auth.user.email ?? "", usage: buildUsageSummary(auth.plan, counts, settings.rules), role: auth.role }}>
+    <UsageProvider initial={{
+      plan: auth.plan,
+      email: auth.user.email ?? "",
+      usage: buildUsageSummary(auth.plan, counts, settings.rules),
+      role: auth.role,
+      onTrial: auth.onTrial,
+      trialEndsAt: auth.trialEndsAt,
+      trialEligible: settings.flags.trialEnabled && !auth.trialUsed && auth.paidPlan !== "premium",
+      trialDays: settings.flags.trialDays,
+      supportEnabled: settings.flags.supportEnabled,
+    }}>
       <Shell>{children}</Shell>
     </UsageProvider>
   );

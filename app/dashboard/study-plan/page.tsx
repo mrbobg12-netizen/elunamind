@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Markdown } from "../../_components/Markdown";
+import { ExportMenu } from "../../_components/ExportMenu";
 import { CopyButton, ErrorBox, Field, GenerateButton, Panel, Skeleton, ToolFrame, useToolRunner } from "../../_components/ToolUI";
 
 export default function StudyPlanPage() {
@@ -9,6 +10,7 @@ export default function StudyPlanPage() {
   const [days, setDays] = useState(7);
   const [hours, setHours] = useState(2);
   const [plan, setPlan] = useState("");
+  const printRef = useRef<HTMLDivElement>(null);
 
   async function generate() {
     const j = await tool.run({ subject, examDate: days, hoursPerDay: hours });
@@ -29,7 +31,7 @@ export default function StudyPlanPage() {
         <ErrorBox error={tool.error} upgrade={tool.upgrade} />
         {tool.loading && <Panel><Skeleton lines={9} /></Panel>}
         {!tool.loading && plan && (
-          <Panel className="pop-in"><div className="mb-3 flex justify-end"><CopyButton text={plan} label="Copy plan" /></div><Markdown text={plan} /></Panel>
+          <Panel className="pop-in"><div className="mb-3 flex justify-end gap-2"><CopyButton text={plan} label="Copy" /><ExportMenu text={plan} title={`Study plan — ${subject}`} printRef={printRef} /></div><div ref={printRef}><Markdown text={plan} /></div></Panel>
         )}
       </div>
     </ToolFrame>

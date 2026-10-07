@@ -8,6 +8,21 @@ import { Footer } from "../_components/landing/Footer";
 
 export const revalidate = 300; // posts change rarely; re-check every 5 minutes
 
+type Post = { slug: string; title: string; excerpt: string | null; cover_url: string | null; tags: string[] | null; published_at: string | null };
+
+async function listPosts(): Promise<Post[]> {
+  try {
+    const { data, error } = await supabaseAdmin()
+      .from("blog_posts").select("slug,title,excerpt,cover_url,tags,published_at")
+      .eq("status", "published").order("published_at", { ascending: false }).limit(50);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Post[];
+  } catch (err) {
+    console.error("blog list unavailable:", (err as Error)?.message);
+    return [];
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const { branding } = await getSettings();
   return { title: `Blog — ${branding.siteName}`, description: `Study tips and product news from ${branding.siteName}.` };
@@ -17,10 +32,9 @@ export default async function BlogIndex() {
   const { flags, branding } = await getSettings();
   if (!flags.blogEnabled) notFound();
 
-  const { data } = await supabaseAdmin()
-    .from("blog_posts").select("slug,title,excerpt,cover_url,tags,published_at")
-    .eq("status", "published").order("published_at", { ascending: false }).limit(50);
-  const posts = data ?? [];
+  // This page is prerendered, so a database hiccup here would fail the whole
+  // deploy. An empty list is a far better outcome than no site at all.
+  const posts = await listPosts();
 
   return (
     <div className="relative">

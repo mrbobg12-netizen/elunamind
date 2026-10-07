@@ -15,5 +15,11 @@ export async function GET(req: Request) {
     email: auth.user.email ?? "",
     usage: buildUsageSummary(auth.plan, counts, settings.rules),
     role: auth.role,
+    onTrial: auth.onTrial,
+    trialEndsAt: auth.trialEndsAt,
+    trialEligible:
+      settings.flags.trialEnabled && !auth.trialUsed && auth.paidPlan !== "premium" && !auth.blocked,
+    trialDays: settings.flags.trialDays,
+    supportEnabled: settings.flags.supportEnabled,
   });
 }

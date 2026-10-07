@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
-import { requireAdmin, type AuthResult } from "../../../lib/auth";
+import { requireStaff, type AuthResult, type Permission } from "../../../lib/auth";
 
-/** Every admin route starts here. Returns the admin, or a 403/401 response. */
-export async function adminOrFail(req: Request): Promise<{ ok: true; admin: AuthResult } | { ok: false; res: NextResponse }> {
-  const admin = await requireAdmin(req);
+/**
+ * Every admin route starts here.
+ *
+ * Pass the permission the route needs. A sub-admin without it gets the same
+ * 403 as a stranger, so a route can never be reached by someone who merely
+ * happens to be staff.
+ */
+export async function adminOrFail(
+  req: Request,
+  permission?: Permission
+): Promise<{ ok: true; admin: AuthResult } | { ok: false; res: NextResponse }> {
+  const admin = await requireStaff(req, permission);
   if (!admin) {
-    return { ok: false, res: NextResponse.json({ error: "Admin access required." }, { status: 403 }) };
+    return { ok: false, res: NextResponse.json({ error: "You do not have access to this." }, { status: 403 }) };
   }
   return { ok: true, admin };
 }

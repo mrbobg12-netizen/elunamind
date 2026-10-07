@@ -1,24 +1,28 @@
 "use client";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AttachButton, AttachedChip, useAttach } from "../../_components/Attach";
 import { Icon } from "../../_components/Icon";
 import { Markdown } from "../../_components/Markdown";
+import { Speak } from "../../_components/Speak";
 import { useUsage } from "../../_components/UsageProvider";
 import { UpgradeButton } from "../../_components/Upgrade";
 import { CopyButton } from "../../_components/ToolUI";
 
-type Msg = { id: string; role: "user" | "assistant"; content: string; error?: boolean; upgrade?: boolean };
+type Msg = { id: string; role: "user" | "assistant"; content: string; error?: boolean; upgrade?: boolean; file?: string };
 type ChatItem = { id: string; title: string; updated_at: string };
 
 const SUGGESTIONS = [
   { t: "Explain simply", d: "Explain photosynthesis like I'm 12", icon: "spark" as const },
   { t: "Quiz me", d: "Quiz me with 5 questions on World War 2", icon: "test" as const },
   { t: "Solve step by step", d: "Solve x² − 5x + 6 = 0 step by step", icon: "notes" as const },
-  { t: "Roman Urdu", d: "Mujhe Newton ke teeno laws example ke saath samjhao", icon: "chat" as const },
+  { t: "Check my reasoning", d: "Here's my answer to a stats question — tell me where my logic goes wrong, don't just correct it", icon: "grammar" as const },
 ];
 const uid = () => Math.random().toString(36).slice(2);
 
 export default function ChatPage() {
   const { usage, refresh, plan } = useUsage();
+  const attach = useAttach();
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -31,6 +35,9 @@ export default function ChatPage() {
   const taRef = useRef<HTMLTextAreaElement>(null);
   const activeRef = useRef<string | null>(null);
   activeRef.current = activeId;
+  // send() is memoised, so the attached file is read through a ref to stay current.
+  const fileRef = useRef(attach.file);
+  fileRef.current = attach.file;
 
   const left = Math.max(0, usage.chat.limit - usage.chat.used);
 
@@ -46,7 +53,7 @@ export default function ChatPage() {
       if (!r.ok) return;
       const j = await r.json();
       setActiveId(id);
-      setMessages((j.messages ?? []).map((m: { id: string; role: "user" | "assistant"; content: string }) => ({ id: m.id, role: m.role, content: m.content })));
+      setMessages((j.messages ?? []).map((m: { id: string; role: "user" | "assistant"; content: string; file?: string | null }) => ({ id: m.id, role: m.role, content: m.content, file: m.file ?? undefined })));
       stickRef.current = true;
     } catch { /* offline */ }
   }, []);
@@ -58,8 +65,9 @@ export default function ChatPage() {
     if (taRef.current) taRef.current.style.height = "auto";
     stickRef.current = true;
 
+    const attached = fileRef.current;
     const asstId = uid();
-    setMessages((m) => [...m, { id: uid(), role: "user", content: text }, { id: asstId, role: "assistant", content: "" }]);
+    setMessages((m) => [...m, { id: uid(), role: "user", content: text, file: attached?.name }, { id: asstId, role: "assistant", content: "" }]);
     setStreaming(true);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
@@ -68,7 +76,7 @@ export default function ChatPage() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId: activeRef.current, message: text }), signal: ctrl.signal,
+        body: JSON.stringify({ chatId: activeRef.current, message: text, uploadId: attached?.id ?? null }), signal: ctrl.signal,
       });
       if (res.status === 401) { window.location.href = "/login?next=/dashboard/chat"; return; }
       if (!res.ok) {
@@ -111,7 +119,8 @@ export default function ChatPage() {
   useEffect(() => {
     loadChats();
     const sp = new URLSearchParams(window.location.search);
-    const id = sp.get("id"), q = sp.get("q");
+    const id = sp.get("id"), q = sp.get("q"), file = sp.get("file");
+    if (file) { window.history.replaceState(null, "", "/dashboard/chat"); void attach.adopt(file); }
     if (id) openChat(id);
     else if (q) { window.history.replaceState(null, "", "/dashboard/chat"); send(q); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,7 +173,7 @@ export default function ChatPage() {
               <div className="page-enter pt-6 text-center sm:pt-14">
                 <div className="float-y mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl text-paper" style={{ background: "var(--lamp)", boxShadow: "0 18px 40px -14px rgba(139,92,246,.9)" }}><Icon name="spark" size={30} /></div>
                 <h1 className="text-2xl font-semibold text-paper sm:text-3xl">How can I help you study today?</h1>
-                <p className="mt-2 text-sm text-muted">Ask in English, Urdu or Roman Urdu. I explain step by step.</p>
+                <p className="mt-2 text-sm text-muted">Ask a question, or attach a PDF, slide deck, photo of your notes or a lecture recording and ask about that.</p>
                 <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
                   {SUGGESTIONS.map((s, i) => (
                     <button key={s.t} type="button" onClick={() => send(s.d)} style={{ animationDelay: `${i * 60}ms` }} className="glass card-hover pop-in rounded-2xl p-4 text-left">
@@ -179,7 +188,12 @@ export default function ChatPage() {
                 {messages.map((m, idx) => {
                   const last = idx === messages.length - 1;
                   return m.role === "user" ? (
-                    <div key={m.id} className="pop-in flex justify-end">
+                    <div key={m.id} className="pop-in flex flex-col items-end gap-1">
+                      {m.file && (
+                        <span className="flex max-w-[88%] items-center gap-1.5 rounded-lg bg-white/[0.06] px-2.5 py-1 text-xs text-paper/70">
+                          <Icon name="attach" size={12} /> <span className="truncate">{m.file}</span>
+                        </span>
+                      )}
                       <div className="max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-br-md px-4 py-3 text-[0.95rem] text-paper" style={{ background: "#1b2440" }}>{m.content}</div>
                     </div>
                   ) : (
@@ -196,7 +210,12 @@ export default function ChatPage() {
                         ) : (
                           <div className={streaming && last ? "caret" : ""}><Markdown text={m.content} /></div>
                         )}
-                        {!m.error && m.content && !(streaming && last) && <div className="mt-1.5 opacity-0 transition group-hover:opacity-100"><CopyButton text={m.content} /></div>}
+                        {!m.error && m.content && !(streaming && last) && (
+                          <div className="mt-1.5 flex items-center gap-1 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+                            <CopyButton text={m.content} />
+                            <Speak text={m.content} />
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -208,7 +227,30 @@ export default function ChatPage() {
 
         <div className="border-t border-white/[0.07] bg-[#07070d]/80 px-4 pb-4 pt-3 backdrop-blur-xl">
           <form className="mx-auto w-full max-w-3xl" onSubmit={(e) => { e.preventDefault(); send(input); }}>
+            {attach.file && (
+              <>
+                <AttachedChip file={attach.file} onClear={attach.clear} />
+                {attach.file.kind === "audio" && (
+                  <p className="mb-2 px-1 text-xs text-amber-200/85">
+                    A recording has to be transcribed before I can read it —{" "}
+                    <Link href={`/dashboard/transcript?file=${attach.file.id}`} className="underline underline-offset-2">open Lecture Transcripts</Link>, then come back.
+                  </p>
+                )}
+              </>
+            )}
+            {attach.error && (
+              <div className="pop-in mb-2 flex items-start gap-2 rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs text-red-100">
+                <span className="flex-1">{attach.error}</span>
+                <button type="button" onClick={() => attach.setError(null)} aria-label="Dismiss"><Icon name="x" size={13} /></button>
+              </div>
+            )}
             <div className="glass-strong flex items-end gap-2 rounded-2xl p-2 focus-within:border-violet-400/60">
+              <AttachButton
+                onPick={(f) => { void attach.upload(f); }}
+                busy={attach.busy}
+                disabled={streaming || attach.left === 0}
+                label={undefined}
+              />
               <textarea
                 ref={taRef} value={input} rows={1} maxLength={2000} placeholder="Message your tutor…" disabled={left === 0 && !streaming}
                 className="max-h-40 min-h-[2.75rem] flex-1 resize-none bg-transparent px-3 py-2.5 text-[0.95rem] text-paper outline-none placeholder:text-mute/70"
@@ -222,7 +264,11 @@ export default function ChatPage() {
               )}
             </div>
             <div className="mt-2 flex items-center justify-between px-1 text-xs text-muted">
-              <span>{left === 0 ? "Daily message limit reached." : `${left} of ${usage.chat.limit} messages left today`}{plan !== "premium" && left <= 3 && left > 0 ? " · running low" : ""}</span>
+              <span>
+                {left === 0 ? "Daily message limit reached." : `${left} of ${usage.chat.limit} messages left today`}
+                {plan !== "premium" && left <= 3 && left > 0 ? " · running low" : ""}
+                {attach.left === 0 ? " · no uploads left today" : ` · ${attach.left} uploads left`}
+              </span>
               {plan !== "premium" && left <= 5 ? <UpgradeButton label="Get more" className="btn btn-ghost btn-sm" /> : <span className="hidden sm:inline">Enter to send · Shift+Enter for a new line</span>}
             </div>
           </form>

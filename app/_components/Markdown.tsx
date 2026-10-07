@@ -1,20 +1,97 @@
-import React from "react";
+"use client";
+import React, { useMemo, useState } from "react";
+import katex from "katex";
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import python from "highlight.js/lib/languages/python";
+import java from "highlight.js/lib/languages/java";
+import cpp from "highlight.js/lib/languages/cpp";
+import csharp from "highlight.js/lib/languages/csharp";
+import sql from "highlight.js/lib/languages/sql";
+import xml from "highlight.js/lib/languages/xml";
+import css from "highlight.js/lib/languages/css";
+import json from "highlight.js/lib/languages/json";
+import bash from "highlight.js/lib/languages/bash";
 
-// Small, dependency-free markdown renderer (headings, lists, bold, inline/fenced code). No raw HTML is ever injected.
+for (const [name, lang] of Object.entries({ javascript, typescript, python, java, cpp, csharp, sql, xml, css, json, bash })) {
+  hljs.registerLanguage(name, lang);
+}
+hljs.registerAliases(["js", "jsx"], { languageName: "javascript" });
+hljs.registerAliases(["ts", "tsx"], { languageName: "typescript" });
+hljs.registerAliases(["py"], { languageName: "python" });
+hljs.registerAliases(["html"], { languageName: "xml" });
+hljs.registerAliases(["sh", "shell"], { languageName: "bash" });
+hljs.registerAliases(["c", "c++"], { languageName: "cpp" });
+
+/** Render one TeX snippet. A bad formula shows as plain text instead of breaking the page. */
+function tex(src: string, display: boolean, key: string) {
+  try {
+    const html = katex.renderToString(src, { displayMode: display, throwOnError: false, strict: false, output: "html" });
+    return <span key={key} className={display ? "my-3 block overflow-x-auto text-center" : ""} dangerouslySetInnerHTML={{ __html: html }} />;
+  } catch {
+    return <code key={key} className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[0.85em]">{src}</code>;
+  }
+}
+
+/** Inline formatting: math, bold, italic, inline code, links. No raw HTML is ever injected. */
 function inline(text: string, k: string): React.ReactNode[] {
-  return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((p, i) => {
-    if (p.length > 4 && p.startsWith("**") && p.endsWith("**"))
-      return <strong key={k + i} className="font-semibold text-paper">{p.slice(2, -2)}</strong>;
-    if (p.length > 2 && p.startsWith("`") && p.endsWith("`"))
-      return <code key={k + i} className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[0.85em] text-cyan-200">{p.slice(1, -1)}</code>;
-    return <React.Fragment key={k + i}>{p}</React.Fragment>;
+  const out: React.ReactNode[] = [];
+  // split on the things we handle, keeping the delimiters
+  const parts = text.split(/(\$\$[^$]+\$\$|\$[^$\n]+\$|\\\([^)]*\\\)|`[^`]+`|\*\*[^*]+\*\*|\*[^*\n]+\*|\[[^\]]+\]\([^)\s]+\))/g);
+  parts.forEach((p, i) => {
+    const key = `${k}-${i}`;
+    if (!p) return;
+    if (p.startsWith("$$") && p.endsWith("$$") && p.length > 4) return out.push(tex(p.slice(2, -2), true, key));
+    if (p.startsWith("\\(") && p.endsWith("\\)")) return out.push(tex(p.slice(2, -2), false, key));
+    if (p.startsWith("$") && p.endsWith("$") && p.length > 2) return out.push(tex(p.slice(1, -1), false, key));
+    if (p.startsWith("`") && p.endsWith("`") && p.length > 2)
+      return out.push(<code key={key} className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[0.85em] text-lamp">{p.slice(1, -1)}</code>);
+    if (p.startsWith("**") && p.endsWith("**") && p.length > 4)
+      return out.push(<strong key={key} className="font-semibold text-paper">{p.slice(2, -2)}</strong>);
+    if (p.startsWith("*") && p.endsWith("*") && p.length > 2)
+      return out.push(<em key={key}>{p.slice(1, -1)}</em>);
+    const link = p.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    if (link && /^https?:\/\//i.test(link[2]))
+      return out.push(<a key={key} href={link[2]} target="_blank" rel="noopener noreferrer" className="text-lamp underline underline-offset-2">{link[1]}</a>);
+    out.push(<React.Fragment key={key}>{p}</React.Fragment>);
   });
+  return out;
+}
+
+function CodeBlock({ code, lang }: { code: string; lang: string }) {
+  const [copied, setCopied] = useState(false);
+  const html = useMemo(() => {
+    try {
+      if (lang && hljs.getLanguage(lang)) return hljs.highlight(code, { language: lang }).value;
+      return hljs.highlightAuto(code).value;
+    } catch { return null; }
+  }, [code, lang]);
+
+  return (
+    <div className="my-3 overflow-hidden rounded-xl border border-white/10 bg-black/40">
+      <div className="flex items-center justify-between border-b border-white/10 px-3 py-1.5">
+        <span className="font-mono text-[0.7rem] uppercase tracking-wide text-muted">{lang || "code"}</span>
+        <button type="button" className="text-xs text-muted transition-colors hover:text-paper"
+          onClick={async () => { try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} }}>
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <pre className="overflow-x-auto p-4 font-mono text-[0.85rem] leading-relaxed">
+        {html ? <code dangerouslySetInnerHTML={{ __html: html }} /> : <code>{code}</code>}
+      </pre>
+    </div>
+  );
 }
 
 const isBullet = (l: string) => /^\s*[-*•]\s+/.test(l);
 const isNum = (l: string) => /^\s*\d+[.)]\s+/.test(l);
 const isHead = (l: string) => /^#{1,4}\s/.test(l);
 const isFence = (l: string) => l.trim().startsWith("```");
+const isQuote = (l: string) => /^\s*>\s?/.test(l);
+const isTableRow = (l: string) => /^\s*\|.*\|\s*$/.test(l);
+const isTableSep = (l: string) => /^\s*\|[\s:-]+\|\s*$/.test(l);
+const cells = (l: string) => l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
 
 export function Markdown({ text, className = "" }: { text: string; className?: string }) {
   const lines = text.replace(/\r/g, "").split("\n");
@@ -23,18 +100,49 @@ export function Markdown({ text, className = "" }: { text: string; className?: s
 
   while (i < lines.length) {
     const line = lines[i];
+
     if (isFence(line)) {
+      const lang = line.trim().slice(3).trim().toLowerCase();
       const buf: string[] = [];
       i++;
       while (i < lines.length && !isFence(lines[i])) buf.push(lines[i++]);
       i++;
-      out.push(<pre key={key++} className="my-3 overflow-x-auto rounded-xl border border-white/10 bg-black/40 p-4 font-mono text-[0.85rem] leading-relaxed text-cyan-100"><code>{buf.join("\n")}</code></pre>);
+      out.push(<CodeBlock key={key++} code={buf.join("\n")} lang={lang} />);
+    } else if (/^\s*\$\$\s*$/.test(line)) {
+      const buf: string[] = [];
+      i++;
+      while (i < lines.length && !/^\s*\$\$\s*$/.test(lines[i])) buf.push(lines[i++]);
+      i++;
+      out.push(<div key={key++}>{tex(buf.join("\n"), true, `b${key}`)}</div>);
+    } else if (isTableRow(line) && i + 1 < lines.length && isTableSep(lines[i + 1])) {
+      const head = cells(line);
+      i += 2;
+      const rows: string[][] = [];
+      while (i < lines.length && isTableRow(lines[i])) rows.push(cells(lines[i++]));
+      out.push(
+        <div key={key++} className="my-3 overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead><tr className="border-b border-white/15">{head.map((h, j) => <th key={j} className="px-3 py-2 text-left font-semibold text-paper">{inline(h, `th${key}${j}`)}</th>)}</tr></thead>
+            <tbody>{rows.map((r, ri) => (
+              <tr key={ri} className="border-b border-white/5 last:border-0">
+                {r.map((c, ci) => <td key={ci} className="px-3 py-2 align-top text-paper/80">{inline(c, `td${key}${ri}${ci}`)}</td>)}
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      );
     } else if (isHead(line)) {
       const level = line.match(/^#+/)![0].length;
       const content = line.replace(/^#+\s*/, "");
-      const cls = level <= 1 ? "mt-5 mb-2 text-xl font-semibold text-paper" : level === 2 ? "mt-5 mb-2 text-lg font-semibold text-paper" : "mt-4 mb-1.5 text-base font-semibold text-lamp";
+      const cls = level <= 1 ? "mt-5 mb-2 font-display text-xl text-paper"
+        : level === 2 ? "mt-5 mb-2 font-display text-lg text-paper"
+        : "mt-4 mb-1.5 font-display text-base text-lamp";
       out.push(<div key={key++} className={cls}>{inline(content, `h${key}`)}</div>);
       i++;
+    } else if (isQuote(line)) {
+      const buf: string[] = [];
+      while (i < lines.length && isQuote(lines[i])) buf.push(lines[i++].replace(/^\s*>\s?/, ""));
+      out.push(<blockquote key={key++} className="my-3 border-l-2 border-lamp/60 pl-4 text-paper/75">{buf.map((t, j) => <p key={j}>{inline(t, `q${key}${j}`)}</p>)}</blockquote>);
     } else if (isBullet(line)) {
       const items: string[] = [];
       while (i < lines.length && isBullet(lines[i])) items.push(lines[i++].replace(/^\s*[-*•]\s+/, ""));
@@ -50,12 +158,8 @@ export function Markdown({ text, className = "" }: { text: string; className?: s
       i++;
     } else {
       const buf: string[] = [];
-      while (i < lines.length && lines[i].trim() !== "" && !isFence(lines[i]) && !isHead(lines[i]) && !isBullet(lines[i]) && !isNum(lines[i])) buf.push(lines[i++]);
-      out.push(
-        <p key={key++} className="my-2">
-          {buf.map((t, j) => <React.Fragment key={j}>{j > 0 && <br />}{inline(t, `p${key}${j}`)}</React.Fragment>)}
-        </p>
-      );
+      while (i < lines.length && lines[i].trim() !== "" && !isFence(lines[i]) && !isHead(lines[i]) && !isBullet(lines[i]) && !isNum(lines[i]) && !isQuote(lines[i]) && !isTableRow(lines[i])) buf.push(lines[i++]);
+      out.push(<p key={key++} className="my-2">{buf.map((t, j) => <React.Fragment key={j}>{j > 0 && <br />}{inline(t, `p${key}${j}`)}</React.Fragment>)}</p>);
     }
   }
   return <div className={`leading-relaxed text-[0.95rem] text-paper/85 ${className}`}>{out}</div>;

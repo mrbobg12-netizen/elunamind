@@ -6,7 +6,7 @@ import { adminOrFail, body } from "../_helpers";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "settings");
   if (!gate.ok) return gate.res;
   return NextResponse.json({ settings: await getSettings(), defaults: DEFAULTS });
 }
@@ -15,7 +15,7 @@ const KEYS = ["rules", "branding", "pricing", "flags"] as const;
 type Key = (typeof KEYS)[number];
 
 export async function PUT(req: Request) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "settings");
   if (!gate.ok) return gate.res;
 
   const b = await body(req);

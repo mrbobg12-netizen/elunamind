@@ -9,7 +9,7 @@ const slugify = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 70) || "post";
 
 export async function GET(req: Request) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "blog");
   if (!gate.ok) return gate.res;
 
   const { data, error } = await supabaseAdmin()
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "blog");
   if (!gate.ok) return gate.res;
 
   const b = await body(req);

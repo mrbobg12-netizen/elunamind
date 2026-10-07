@@ -109,6 +109,8 @@ export default function AdminOverview() {
             <Stat label="Total users" value={o!.users_total} hint={`${o!.users_new_today} joined today`} />
             <Stat label="Premium users" value={o!.users_premium}
               hint={o!.users_total ? `${Math.round((o!.users_premium / o!.users_total) * 100)}% of all users` : "—"} />
+            <Stat label="On a free trial" value={o!.users_trialing ?? 0}
+              hint={o!.trials_started ? `${o!.trials_started} started all time` : "None started yet"} />
             <Stat label="Active today" value={o!.active_today} hint={`${o!.active_7d} in the last 7 days`} />
             <Stat label="AI uses today" value={o!.uses_today} hint={`${o!.uses_total} all time`} />
           </div>
@@ -123,6 +125,9 @@ export default function AdminOverview() {
             <Stat label="Chat messages" value={o!.messages_total} />
             <Stat label="Notes generated" value={o!.notes_total} />
             <Stat label="Blocked accounts" value={o!.users_blocked} />
+            <Stat label="Files uploaded" value={o!.uploads_total ?? 0} />
+            <Stat label="Open tickets" value={o!.tickets_open ?? 0}
+              hint={o!.tickets_waiting ? `${o!.tickets_waiting} waiting on a reply` : "Nothing waiting"} />
           </div>
 
           <Card>

@@ -8,9 +8,12 @@ type Profile = {
   id: string; email: string; plan: string; role: string; status: string;
   blocked_reason: string | null; admin_note: string | null;
   created_at: string; last_seen_at: string | null; stripe_customer_id: string | null;
+  trial_started_at: string | null; trial_ends_at: string | null;
 };
+type Viewer = { role: string; canPlan: boolean; canRole: boolean; isSelf: boolean };
 type Detail = {
   profile: Profile;
+  viewer: Viewer;
   usage_today: Record<string, number>;
   usage_total: Record<string, number>;
   last_14_days: { day: string; uses: number }[];
@@ -19,7 +22,8 @@ type Detail = {
 };
 
 const LABELS: Record<string, string> = {
-  chat: "Chat", notes: "Notes", qna: "Q&A", studyPlan: "Study plan", career: "Career",
+  chat: "Chat", upload: "Uploads", transcript: "Transcripts", translate: "Translate",
+  notes: "Notes", qna: "Q&A", studyPlan: "Study plan", career: "Career",
   flashcards: "Flashcards", test: "Tests", visualMap: "Mind maps", presentation: "Slides",
   grammar: "Grammar", paraphrase: "Paraphrase", citations: "Citations",
 };
@@ -31,7 +35,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const [reason, setReason] = useState("");
-  const [ask, setAsk] = useState<null | { kind: "block" | "unblock" | "admin" | "unadmin" | "reset" }>(null);
+  const [trialDays, setTrialDays] = useState(7);
+  const [ask, setAsk] = useState<null | { kind: "block" | "unblock" | "admin" | "subadmin" | "unadmin" | "reset" | "endTrial" }>(null);
   const { toast, toastNode } = useToast();
 
   const load = useCallback(async () => {
@@ -66,12 +71,17 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const maxDay = Math.max(1, ...d.last_14_days.map((x) => x.uses));
   const totalUses = Object.values(d.usage_total).reduce((a, b) => a + b, 0);
   const fmt = (s: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "Never");
+  const v = d.viewer;
+  const onTrial = p.plan !== "premium" && !!p.trial_ends_at && new Date(p.trial_ends_at).getTime() > Date.now();
+  const daysLeft = p.trial_ends_at ? Math.max(0, Math.ceil((new Date(p.trial_ends_at).getTime() - Date.now()) / 86_400_000)) : 0;
 
   const confirmText = {
     block: { title: "Block this account?", message: "They will be signed out of every AI tool and shown the reason you set.", label: "Block account", danger: true },
     unblock: { title: "Unblock this account?", message: "They get their normal plan access back immediately.", label: "Unblock", danger: false },
-    admin: { title: "Make this user an admin?", message: "They will be able to see every user's data and change pricing, limits and content.", label: "Grant admin", danger: true },
-    unadmin: { title: "Remove admin access?", message: "They keep their account but lose the admin panel.", label: "Remove admin", danger: true },
+    admin: { title: "Make this user a full admin?", message: "They will be able to see every user's data and change pricing, limits, plans and other people's roles.", label: "Grant admin", danger: true },
+    subadmin: { title: "Make this user a sub-admin?", message: "They can answer support tickets, block abusive accounts and write blog posts. They cannot change plans, limits, pricing or roles.", label: "Grant sub-admin", danger: false },
+    unadmin: { title: "Remove staff access?", message: "They keep their account but lose the staff panel entirely.", label: "Remove access", danger: true },
+    endTrial: { title: "End this trial now?", message: "They drop back to the free plan immediately. The trial still counts as used, so they cannot start another.", label: "End trial", danger: true },
     reset: { title: "Reset today's usage?", message: "Their daily counters go back to zero, so they can use every tool again today.", label: "Reset usage", danger: false },
   };
 
@@ -83,8 +93,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     >
       {toastNode}
       <div className="mb-5 flex flex-wrap gap-2">
-        <Pill tone={p.plan === "premium" ? "premium" : "free"}>{p.plan === "premium" ? "Premium" : "Free plan"}</Pill>
+        <Pill tone={p.plan === "premium" ? "premium" : onTrial ? "trial" : "free"}>
+          {p.plan === "premium" ? "Premium" : onTrial ? `On trial · ${daysLeft}d left` : "Free plan"}
+        </Pill>
         {p.role === "admin" && <Pill tone="admin">Admin</Pill>}
+        {p.role === "sub_admin" && <Pill tone="staff">Sub-admin</Pill>}
         {p.status === "blocked" && <Pill tone="blocked">Blocked</Pill>}
         {p.stripe_customer_id && <span className="chip">Stripe customer</span>}
       </div>
@@ -166,19 +179,57 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
         {/* actions */}
         <aside className="space-y-5">
-          <Card>
-            <h2 className="mb-4 font-display text-base text-paper">Plan</h2>
-            <div className="flex gap-2">
-              {(["free", "premium"] as const).map((pl) => (
-                <button key={pl} type="button" disabled={busy || p.plan === pl}
-                  onClick={() => patch({ plan: pl }, `Moved to the ${pl} plan.`)}
-                  className={`btn btn-sm flex-1 ${p.plan === pl ? "btn-primary" : "btn-ghost"}`}>
-                  {pl === "free" ? "Free" : "Premium"}
-                </button>
-              ))}
-            </div>
-            <p className="mt-2 text-xs text-muted">A manual change here does not touch their Stripe subscription.</p>
-          </Card>
+          {v.canPlan ? (
+            <Card>
+              <h2 className="mb-4 font-display text-base text-paper">Plan</h2>
+              <div className="flex gap-2">
+                {(["free", "premium"] as const).map((pl) => (
+                  <button key={pl} type="button" disabled={busy || p.plan === pl}
+                    onClick={() => patch({ plan: pl }, `Moved to the ${pl} plan.`)}
+                    className={`btn btn-sm flex-1 ${p.plan === pl ? "btn-primary" : "btn-ghost"}`}>
+                    {pl === "free" ? "Free" : "Premium"}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-muted">A manual change here does not touch their Stripe subscription.</p>
+
+              <div className="mt-5 border-t border-white/10 pt-4">
+                <h3 className="mb-2 text-sm font-medium text-paper/90">Free trial</h3>
+                <p className="mb-3 text-xs text-muted">
+                  {onTrial
+                    ? `Running until ${fmt(p.trial_ends_at)} (${daysLeft} day${daysLeft === 1 ? "" : "s"} left).`
+                    : p.trial_started_at
+                      ? `Used already, started ${fmt(p.trial_started_at)}.`
+                      : "Never used."}
+                </p>
+                {onTrial ? (
+                  <button type="button" className="btn btn-ghost btn-sm w-full !border-red-400/40 !text-red-200"
+                    disabled={busy} onClick={() => setAsk({ kind: "endTrial" })}>
+                    <Icon name="ban" size={14} /> End trial now
+                  </button>
+                ) : (
+                  <div className="flex items-end gap-2">
+                    <Field label="Days">
+                      <input type="number" min={1} max={90} className="input !w-20 !py-1.5 !text-sm" value={trialDays}
+                        onChange={(e) => setTrialDays(Math.min(90, Math.max(1, Number(e.target.value) || 1)))} />
+                    </Field>
+                    <button type="button" className="btn btn-ghost btn-sm flex-1" disabled={busy || p.plan === "premium"}
+                      onClick={() => patch({ trialDays }, `${trialDays}-day trial granted.`)}>
+                      <Icon name="zap" size={14} /> {p.trial_started_at ? "Grant another" : "Grant trial"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </Card>
+          ) : (
+            <Card>
+              <h2 className="mb-2 font-display text-base text-paper">Plan</h2>
+              <p className="text-sm text-paper/85">
+                {p.plan === "premium" ? "Premium" : onTrial ? `On a free trial, ${daysLeft} day${daysLeft === 1 ? "" : "s"} left` : "Free plan"}
+              </p>
+              <p className="mt-2 text-xs text-muted">Your role cannot change plans or trials. Ask a full admin.</p>
+            </Card>
+          )}
 
           <Card>
             <h2 className="mb-4 font-display text-base text-paper">Account</h2>
@@ -200,10 +251,27 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               <button type="button" className="btn btn-ghost btn-sm w-full" disabled={busy} onClick={() => setAsk({ kind: "reset" })}>
                 <Icon name="refresh" size={14} /> Reset today&apos;s usage
               </button>
-              <button type="button" className="btn btn-ghost btn-sm w-full" disabled={busy}
-                onClick={() => setAsk({ kind: p.role === "admin" ? "unadmin" : "admin" })}>
-                <Icon name="shield" size={14} /> {p.role === "admin" ? "Remove admin" : "Make admin"}
-              </button>
+              {v.canRole && (
+                <div className="space-y-2 border-t border-white/10 pt-2.5">
+                  <p className="text-xs text-muted">Staff access</p>
+                  {p.role !== "admin" && (
+                    <button type="button" className="btn btn-ghost btn-sm w-full" disabled={busy} onClick={() => setAsk({ kind: "admin" })}>
+                      <Icon name="shield" size={14} /> Make full admin
+                    </button>
+                  )}
+                  {p.role !== "sub_admin" && (
+                    <button type="button" className="btn btn-ghost btn-sm w-full" disabled={busy} onClick={() => setAsk({ kind: "subadmin" })}>
+                      <Icon name="users" size={14} /> Make sub-admin
+                    </button>
+                  )}
+                  {p.role !== "user" && (
+                    <button type="button" className="btn btn-ghost btn-sm w-full !border-red-400/40 !text-red-200" disabled={busy}
+                      onClick={() => setAsk({ kind: "unadmin" })}>
+                      <Icon name="ban" size={14} /> Remove staff access
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </Card>
 
@@ -230,7 +298,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             if (ask.kind === "block") patch({ status: "blocked", reason }, "Account blocked.");
             if (ask.kind === "unblock") patch({ status: "active" }, "Account unblocked.");
             if (ask.kind === "admin") patch({ role: "admin" }, "Admin access granted.");
-            if (ask.kind === "unadmin") patch({ role: "user" }, "Admin access removed.");
+            if (ask.kind === "subadmin") patch({ role: "sub_admin" }, "Sub-admin access granted.");
+            if (ask.kind === "unadmin") patch({ role: "user" }, "Staff access removed.");
+            if (ask.kind === "endTrial") patch({ endTrial: true }, "Trial ended.");
             if (ask.kind === "reset") patch({ resetUsage: true }, "Today's usage reset.");
           }}
         />

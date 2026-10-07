@@ -5,7 +5,7 @@ import { adminOrFail } from "../_helpers";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "users.view");
   if (!gate.ok) return gate.res;
 
   const sp = new URL(req.url).searchParams;

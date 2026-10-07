@@ -2,7 +2,8 @@ import { Icon } from "../Icon";
 import { Reveal } from "../Reveal";
 
 const REASONS = [
-  { icon: "chat" as const, head: "It teaches, not just answers", body: "Ask in English, Urdu or Roman Urdu and get the reasoning step by step, so the next question is easier on your own." },
+  { icon: "chat" as const, head: "It teaches, not just answers", body: "You get the reasoning one step at a time, so the next question is one you can do on your own." },
+  { icon: "attach" as const, head: "It reads your actual course", body: "Upload the chapter, the slide deck, a photo of your notes or a lecture recording, and every answer comes from that, not from a guess." },
   { icon: "zap" as const, head: "You always know what is left", body: "Every tool shows your remaining uses before you start. No silent cut-offs in the middle of an exam week." },
   { icon: "history" as const, head: "Your work stays", body: "Chats and notes are saved to your account and open again whenever you need them. Delete anything you want gone." },
   { icon: "shield" as const, head: "Honest about mistakes", body: "Citations carry a verify-first warning and nothing is dressed up as certain. You check, we make checking fast." },

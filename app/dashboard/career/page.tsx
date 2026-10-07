@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Markdown } from "../../_components/Markdown";
+import { ExportMenu } from "../../_components/ExportMenu";
 import { CopyButton, ErrorBox, Field, GenerateButton, Panel, Skeleton, ToolFrame, useToolRunner } from "../../_components/ToolUI";
 
 type Block = { title: string; body: string };
@@ -26,6 +27,7 @@ export default function CareerPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [skills, setSkills] = useState("");
   const [blocks, setBlocks] = useState<Block[]>([]);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const questions = mode === "opt2" ? PATH_Q : INCOME_Q;
   const ready = mode === "opt1" ? role.trim().length > 1 : questions.every((x) => answers[x.q]) && (mode === "opt2" || skills.trim().length > 1);
@@ -69,10 +71,12 @@ export default function CareerPage() {
         {tool.loading && <Panel><Skeleton lines={8} /></Panel>}
         {!tool.loading && blocks.length > 0 && (
           <div className="space-y-3">
-            <div className="flex justify-end"><CopyButton text={blocks.map((b) => `${b.title}\n${b.body}`).join("\n\n")} label="Copy all" /></div>
-            {blocks.map((b, i) => (
-              <Panel key={i} className="pop-in" ><h3 className="mb-1 text-base font-semibold text-lamp">{b.title}</h3><Markdown text={b.body} /></Panel>
-            ))}
+            <div className="flex justify-end gap-2"><CopyButton text={blocks.map((b) => `${b.title}\n${b.body}`).join("\n\n")} label="Copy all" /><ExportMenu text={blocks.map((b) => `## ${b.title}\n${b.body}`).join("\n\n")} title="Career guidance" printRef={printRef} /></div>
+            <div ref={printRef} className="space-y-3">
+              {blocks.map((b, i) => (
+                <Panel key={i} className="pop-in"><h3 className="mb-1 font-display text-base text-lamp">{b.title}</h3><Markdown text={b.body} /></Panel>
+              ))}
+            </div>
           </div>
         )}
       </div>

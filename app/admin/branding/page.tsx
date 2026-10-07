@@ -4,7 +4,10 @@ import { Icon } from "../../_components/Icon";
 import { Card, Field, Loading, Page, useToast } from "../ui";
 
 type Branding = { siteName: string; tagline: string; logoUrl: string; supportEmail: string; heroHeadline: string; heroSubline: string };
-type Flags = { aiDisabled: boolean; signupsOpen: boolean; blogEnabled: boolean; maintenanceNote: string };
+type Flags = {
+  aiDisabled: boolean; signupsOpen: boolean; blogEnabled: boolean; maintenanceNote: string;
+  trialEnabled: boolean; trialDays: number; supportEnabled: boolean;
+};
 
 function Toggle({ on, onChange, label, hint, danger }: { on: boolean; onChange: (v: boolean) => void; label: string; hint: string; danger?: boolean }) {
   return (
@@ -108,6 +111,20 @@ export default function BrandingPage() {
               label="Allow new sign-ups" hint="Turn off to stop new accounts while keeping existing users working." />
             <Toggle on={f.blogEnabled} onChange={(v) => setF({ ...f, blogEnabled: v })}
               label="Show the blog" hint="Hides /blog from visitors without deleting any posts." />
+            <Toggle on={f.supportEnabled} onChange={(v) => setF({ ...f, supportEnabled: v })}
+              label="In-app support tickets" hint="Off sends users to your support email instead. Open tickets stay readable in the inbox." />
+            <Toggle on={f.trialEnabled} onChange={(v) => setF({ ...f, trialEnabled: v })}
+              label="Offer a free Premium trial" hint="New accounts can try Premium once, with no card. Trials already running are unaffected." />
+            {f.trialEnabled && (
+              <div className="pt-3">
+                <Field label="Trial length" hint="1 to 90 days">
+                  <input type="number" min={1} max={90} className="input !w-28"
+                    value={f.trialDays}
+                    onChange={(e) => setF({ ...f, trialDays: Math.min(90, Math.max(1, Number(e.target.value) || 1)) })} />
+                </Field>
+                <p className="mt-1.5 text-xs text-muted">Only changes trials started from now on.</p>
+              </div>
+            )}
             <div className="pt-4">
               <Field label="Site-wide notice" hint="empty = hidden">
                 <textarea className="input" rows={3} value={f.maintenanceNote} onChange={(e) => setF({ ...f, maintenanceNote: e.target.value })}

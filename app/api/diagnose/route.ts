@@ -6,40 +6,73 @@ import { getSettings } from "../../../lib/settings";
 export const dynamic = "force-dynamic";
 
 /**
- * Self-check for the signed-in user. Shows which database the server is talking to,
- * what it thinks this account is, and whether each piece of the schema is present.
- * Requires a login and exposes no secrets — only the project reference, which is
- * already public (it is part of the Supabase URL the browser uses).
+ * Self-check for the signed-in user. Reports what the server sees and whether each
+ * piece of the setup works. It never prints a key — only what KIND of key is in use,
+ * which is the usual cause of "my admin account is not recognised".
  */
+
+/** Work out which Supabase key is in SUPABASE_SERVICE_ROLE_KEY, without revealing it. */
+function describeServerKey(key: string): { kind: string; correct: boolean } {
+  if (!key) return { kind: "not set at all", correct: false };
+  if (key.startsWith("sb_secret_")) return { kind: "secret key", correct: true };
+  if (key.startsWith("sb_publishable_"))
+    return { kind: "PUBLISHABLE key — this is the browser key, not the server key", correct: false };
+  if (key.split(".").length === 3) {
+    try {
+      const payload = JSON.parse(Buffer.from(key.split(".")[1], "base64").toString()) as { role?: string };
+      if (payload.role === "service_role") return { kind: "legacy service_role key", correct: true };
+      if (payload.role === "anon") return { kind: `legacy ANON key — this is the browser key, not the server key`, correct: false };
+      return { kind: `legacy key with role "${payload.role ?? "unknown"}"`, correct: false };
+    } catch { return { kind: "unreadable token", correct: false }; }
+  }
+  return { kind: "unrecognised format", correct: false };
+}
+
 export async function GET(req: Request) {
   const auth = await requireUser(req);
   if (!auth) return NextResponse.json({ error: "Log in first, then open this page again." }, { status: 401 });
 
   const db = supabaseAdmin();
   const projectRef = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/^https?:\/\//, "").split(".")[0];
+  const serverKey = describeServerKey(process.env.SUPABASE_SERVICE_ROLE_KEY || "");
 
-  // Does this user actually have a profile row, and what is in it?
   const { data: profile, error: profileErr } = await db
     .from("profiles").select("id,email,plan,role,status").eq("id", auth.user.id).maybeSingle();
 
-  // Can the server run the limit function at all? (0 limit never consumes anything)
+  // Can the server see rows that only a full-access key is allowed to see?
+  const { count: profileCount, error: countErr } = await db
+    .from("profiles").select("id", { count: "exact", head: true });
+
   const probe = await db.rpc("consume_usage", { p_user: auth.user.id, p_kind: "__probe__", p_limit: 0 });
 
-  const tableCheck = async (name: string) => {
-    const { error } = await db.from(name).select("*", { count: "exact", head: true }).limit(1);
-    return error ? `MISSING (${error.message})` : "OK";
+  const readCheck = async (name: string) => {
+    const { error } = await db.from(name).select("*").limit(1);
+    return error ? `ERROR: ${error.message}` : "readable";
   };
-
   const [usageDaily, chats, notes, appSettings] = await Promise.all([
-    tableCheck("usage_daily"), tableCheck("chats"), tableCheck("notes_history"), tableCheck("app_settings"),
+    readCheck("usage_daily"), readCheck("chats"), readCheck("notes_history"), readCheck("app_settings"),
   ]);
 
   const { data: admins } = await db.from("profiles").select("email").eq("role", "admin");
   const settings = await getSettings();
 
+  // The single most useful line: the one thing to fix first.
+  let verdict = "Everything looks right.";
+  if (!serverKey.correct)
+    verdict = `FIX THIS FIRST: SUPABASE_SERVICE_ROLE_KEY on your host holds the ${serverKey.kind}. Replace it with the project's secret key, then redeploy.`;
+  else if (probe.error)
+    verdict = "FIX THIS: the server cannot run consume_usage. Run supabase/004_fixes.sql.";
+  else if (!profile)
+    verdict = "FIX THIS: your login has no matching row in profiles. See the note below.";
+  else if (auth.role !== "admin")
+    verdict = "Your account is not an admin yet. Set role = 'admin' for your email in profiles, then log out and back in.";
+
   return NextResponse.json({
+    verdict,
     whatTheServerSees: {
       supabaseProject: projectRef,
+      serverKeyType: serverKey.kind,
+      serverKeyIsCorrect: serverKey.correct,
       yourEmail: auth.user.email ?? null,
       yourUserId: auth.user.id,
       yourRole: auth.role,
@@ -47,6 +80,7 @@ export async function GET(req: Request) {
       canOpenAdminPanel: auth.role === "admin",
     },
     yourProfileRow: profileErr ? `ERROR: ${profileErr.message}` : profile ?? "NO ROW FOUND for your user id",
+    profilesVisibleToServer: countErr ? `ERROR: ${countErr.message}` : profileCount,
     adminAccountsInThisDatabase: (admins ?? []).map((a) => a.email),
     schema: {
       usage_daily: usageDaily,

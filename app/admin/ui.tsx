@@ -87,12 +87,14 @@ export function Confirm({ open, title, message, confirmLabel = "Confirm", danger
   );
 }
 
-export function Pill({ tone, children }: { tone: "free" | "premium" | "blocked" | "admin" | "draft" | "live"; children: ReactNode }) {
+export function Pill({ tone, children }: { tone: "free" | "premium" | "trial" | "blocked" | "admin" | "staff" | "draft" | "live"; children: ReactNode }) {
   const map = {
     free: "chip",
     premium: "chip chip-brand",
+    trial: "chip chip-ok",
     blocked: "chip !border-red-400/40 !bg-red-500/15 !text-red-200",
     admin: "chip !border-sky-400/40 !bg-sky-500/15 !text-sky-200",
+    staff: "chip !border-violet-400/40 !bg-violet-500/15 !text-violet-200",
     draft: "chip",
     live: "chip chip-ok",
   } as const;

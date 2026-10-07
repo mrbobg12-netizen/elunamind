@@ -7,8 +7,22 @@ import { Card, Empty, Loading, Page, Pill } from "../ui";
 type Row = {
   id: string; email: string; plan: string; role: string; status: string;
   created_at: string; last_seen_at: string | null;
+  trial_ends_at: string | null; on_trial: boolean;
   uses_total: number; uses_today: number; chats: number; notes: number;
 };
+
+/** The plan badge has three states now that a trial can grant Premium. */
+function PlanPill({ u }: { u: Row }) {
+  if (u.plan === "premium") return <Pill tone="premium">Premium</Pill>;
+  if (u.on_trial) return <Pill tone="trial">On trial</Pill>;
+  return <Pill tone="free">Free</Pill>;
+}
+
+function RolePill({ role }: { role: string }) {
+  if (role === "admin") return <Pill tone="admin">Admin</Pill>;
+  if (role === "sub_admin") return <Pill tone="staff">Sub-admin</Pill>;
+  return null;
+}
 
 export default function UsersPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -53,7 +67,7 @@ export default function UsersPage() {
             <input className="input !pl-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by email…" />
           </label>
           <select className="input" value={plan} onChange={(e) => { setPlan(e.target.value); setPage(0); }} aria-label="Filter by plan">
-            <option value="all">All plans</option><option value="free">Free</option><option value="premium">Premium</option>
+            <option value="all">All plans</option><option value="free">Free</option><option value="trial">On trial</option><option value="premium">Premium</option>
           </select>
           <select className="input" value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }} aria-label="Filter by status">
             <option value="all">All accounts</option><option value="active">Active</option><option value="blocked">Blocked</option>
@@ -95,11 +109,11 @@ export default function UsersPage() {
                     <td className="px-5 py-3">
                       <Link href={`/admin/users/${u.id}`} className="text-paper hover:text-lamp">{u.email || "(no email)"}</Link>
                       <div className="mt-1 flex gap-1.5">
-                        {u.role === "admin" && <Pill tone="admin">Admin</Pill>}
+                        <RolePill role={u.role} />
                         {u.status === "blocked" && <Pill tone="blocked">Blocked</Pill>}
                       </div>
                     </td>
-                    <td className="px-3 py-3"><Pill tone={u.plan === "premium" ? "premium" : "free"}>{u.plan}</Pill></td>
+                    <td className="px-3 py-3"><PlanPill u={u} /></td>
                     <td className="px-3 py-3 text-paper/85">{u.uses_today}</td>
                     <td className="px-3 py-3 text-paper/85">{u.uses_total}</td>
                     <td className="px-3 py-3 text-muted">{u.chats}</td>
@@ -120,14 +134,14 @@ export default function UsersPage() {
               <Link key={u.id} href={`/admin/users/${u.id}`} className="glass card-hover block rounded-2xl p-4">
                 <div className="flex items-start justify-between gap-3">
                   <span className="min-w-0 flex-1 truncate text-paper">{u.email || "(no email)"}</span>
-                  <Pill tone={u.plan === "premium" ? "premium" : "free"}>{u.plan}</Pill>
+                  <PlanPill u={u} />
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
                   <span>{u.uses_today} today</span><span>{u.uses_total} all time</span>
                   <span>{u.chats} chats</span><span>{u.notes} notes</span>
                 </div>
                 <div className="mt-2 flex gap-1.5">
-                  {u.role === "admin" && <Pill tone="admin">Admin</Pill>}
+                  <RolePill role={u.role} />
                   {u.status === "blocked" && <Pill tone="blocked">Blocked</Pill>}
                 </div>
               </Link>

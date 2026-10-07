@@ -5,7 +5,7 @@ import { adminOrFail } from "../_helpers";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const gate = await adminOrFail(req);
+  const gate = await adminOrFail(req, "audit");
   if (!gate.ok) return gate.res;
 
   const limit = Math.min(200, Math.max(10, Number(new URL(req.url).searchParams.get("limit")) || 60));
