@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { captureRouteError } from "../../../lib/errors";
 
 export async function POST(req: Request) {
   const g = await guard(req, "flashcards");
@@ -32,6 +33,7 @@ Do NOT include extra text before or after JSON.`;
     return NextResponse.json({ flashcards });
   } catch (err) {
     console.error("flashcards error:", err);
+    captureRouteError(err, req, { route: "/api/flashcards", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Failed to generate flashcards." }, { status: 500 });
   }

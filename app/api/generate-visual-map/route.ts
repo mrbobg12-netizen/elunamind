@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { captureRouteError } from "../../../lib/errors";
 
 export const maxDuration = 60;
 
@@ -92,6 +93,7 @@ Return JSON exactly like:
     return NextResponse.json({ nodes, root: root.id });
   } catch (err) {
     console.error("visual-map error:", err);
+    captureRouteError(err, req, { route: "/api/visual-map", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Could not build the mind map. Please try again." }, { status: 500 });
   }

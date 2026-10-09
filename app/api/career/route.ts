@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, readJson, clean } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { captureRouteError } from "../../../lib/errors";
 
 export async function POST(req: Request) {
   try {
@@ -146,6 +147,7 @@ Side Income Ideas:
     return NextResponse.json({ blocks });
   } catch (err) {
     console.error("Fatal error:", err);
+    captureRouteError(err, req, { route: "/api/career", status: 500 });
     return NextResponse.json(
       { error: "Failed to generate career guidance" },
       { status: 500 }

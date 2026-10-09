@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "../../../lib/auth";
 import { getSettings } from "../../../lib/settings";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
+import { captureRouteError } from "../../../lib/errors";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
 
   if (error) {
     console.error("start_trial failed:", error.message);
+    captureRouteError(error, req, { route: "/api/trial", status: 500 });
     return NextResponse.json({ error: "Could not start your trial just now. Please try again." }, { status: 500 });
   }
 

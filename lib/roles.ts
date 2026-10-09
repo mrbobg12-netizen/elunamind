@@ -23,9 +23,10 @@ export type Permission =
   | "settings"        // limits, pricing, branding, feature flags
   | "blog"
   | "support"
+  | "errors"          // read stack traces and user emails from crash reports
   | "audit";          // read the admin activity log
 
-const ALL: Permission[] = ["users.view", "users.moderate", "users.plan", "users.role", "settings", "blog", "support", "audit"];
+const ALL: Permission[] = ["users.view", "users.moderate", "users.plan", "users.role", "settings", "blog", "support", "errors", "audit"];
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   admin: ALL,

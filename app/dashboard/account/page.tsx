@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase/browser";
+import { BillingCard } from "../../_components/Billing";
 import { Icon } from "../../_components/Icon";
 import { Markdown } from "../../_components/Markdown";
 import { useUsage } from "../../_components/UsageProvider";
@@ -144,21 +145,13 @@ export default function AccountPage() {
             </form>
           </Card>
 
-          <Card title="Billing & support" icon="shield">
-            <ul className="space-y-3 text-sm text-paper/85">
-              <li className="flex items-start gap-2.5">
-                <Icon name="check" size={15} className="mt-0.5 shrink-0 text-mint" />
-                {onTrial
-                  ? "You are on a free trial. It ends on its own and no payment details are held."
-                  : premium ? "You are on Premium. Open a support ticket to cancel or change your plan."
-                  : "You are on the free plan. Nothing is charged."}
-              </li>
-              <li className="flex items-start gap-2.5">
-                <Icon name="check" size={15} className="mt-0.5 shrink-0 text-mint" />
-                Your chats and notes stay in your account until you delete them.
-              </li>
-            </ul>
-            <div className="mt-5 flex flex-wrap gap-2">
+          <Card title="Plan & billing" icon="shield">
+            <BillingCard />
+            <p className="mt-4 flex items-start gap-2.5 border-t border-white/10 pt-4 text-sm text-paper/85">
+              <Icon name="check" size={15} className="mt-0.5 shrink-0 text-mint" />
+              Your chats, notes and files stay in your account until you delete them.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
               <Link href="/pricing" className="btn btn-ghost btn-sm">View plans</Link>
               <Link href="/dashboard/support" className="btn btn-ghost btn-sm"><Icon name="help" size={14} /> Contact support</Link>
               <button type="button" className="btn btn-ghost btn-sm"

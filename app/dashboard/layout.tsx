@@ -4,6 +4,7 @@ import { requireUser, touchLastSeen } from "../../lib/auth";
 import { getUsageToday } from "../../lib/usage";
 import { buildUsageSummary } from "../../lib/plans";
 import { getSettings } from "../../lib/settings";
+import { ErrorBoundary } from "../_components/ErrorCatcher";
 import { UsageProvider } from "../_components/UsageProvider";
 import { Shell } from "./Shell";
 
@@ -25,10 +26,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
       onTrial: auth.onTrial,
       trialEndsAt: auth.trialEndsAt,
       trialEligible: settings.flags.trialEnabled && !auth.trialUsed && auth.paidPlan !== "premium",
+      trialRequiresCard: settings.flags.trialRequiresCard,
       trialDays: settings.flags.trialDays,
       supportEnabled: settings.flags.supportEnabled,
     }}>
-      <Shell>{children}</Shell>
+      <Shell><ErrorBoundary label="dashboard">{children}</ErrorBoundary></Shell>
     </UsageProvider>
   );
 }

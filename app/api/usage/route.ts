@@ -17,8 +17,11 @@ export async function GET(req: Request) {
     role: auth.role,
     onTrial: auth.onTrial,
     trialEndsAt: auth.trialEndsAt,
+    // "eligible" means a trial is still available to this account. Whether it
+    // needs a card decides which button the UI shows, so both travel together.
     trialEligible:
       settings.flags.trialEnabled && !auth.trialUsed && auth.paidPlan !== "premium" && !auth.blocked,
+    trialRequiresCard: settings.flags.trialRequiresCard,
     trialDays: settings.flags.trialDays,
     supportEnabled: settings.flags.supportEnabled,
   });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { captureRouteError } from "../../../lib/errors";
 
 export async function POST(req: Request) {
   const g = await guard(req, "test");
@@ -118,6 +119,7 @@ Keep language concise and student-friendly.`
     return NextResponse.json({ test });
   } catch (err: any) {
     console.error("generate-test error:", err?.message || err);
+    captureRouteError(err, req, { route: "/api/test", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }

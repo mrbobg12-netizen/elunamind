@@ -11,6 +11,8 @@ type State = {
   trialEndsAt?: string | null;
   /** True when a no-card trial is still on offer, so the UI can say so instead of asking for money. */
   trialEligible?: boolean;
+  /** true = the trial runs through Stripe with a card; false = no card at all. */
+  trialRequiresCard?: boolean;
   trialDays?: number;
   supportEnabled?: boolean;
 };
@@ -28,7 +30,8 @@ export function UsageProvider({ initial, children }: { initial: State; children:
         setS({
           plan: j.plan, email: j.email ?? "", usage: j.usage, role: j.role,
           onTrial: j.onTrial, trialEndsAt: j.trialEndsAt, trialEligible: j.trialEligible,
-          trialDays: j.trialDays, supportEnabled: j.supportEnabled,
+          trialRequiresCard: j.trialRequiresCard, trialDays: j.trialDays,
+          supportEnabled: j.supportEnabled,
         });
       }
     } catch { /* keep the old numbers */ }

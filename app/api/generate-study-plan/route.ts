@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { captureRouteError } from "../../../lib/errors";
 
 export async function POST(req: Request) {
   const g = await guard(req, "studyPlan");
@@ -38,6 +39,7 @@ Make it motivational but realistic.`;
     return NextResponse.json({ plan });
   } catch (err) {
     console.error("study-plan error:", err);
+    captureRouteError(err, req, { route: "/api/study-plan", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Failed to generate the plan." }, { status: 500 });
   }

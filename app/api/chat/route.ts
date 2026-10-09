@@ -3,6 +3,7 @@ import { openai, MODEL, clean, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { contextFromUpload, getOwnedUpload } from "../../../lib/uploads";
+import { captureRouteError } from "../../../lib/errors";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -129,6 +130,7 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     console.error("chat error:", err);
+    captureRouteError(err, req, { route: "/api/chat", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Could not reach the AI right now. Please try again." }, { status: 500 });
   }

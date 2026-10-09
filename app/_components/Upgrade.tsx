@@ -55,9 +55,28 @@ export function useTrial() {
 export function UpgradeButton({ label = "Upgrade to Premium", className = "btn btn-primary" }: { label?: string; className?: string }) {
   const ctx = useUsageOptional();
   const trialEligible = ctx?.trialEligible ?? false;
-  const trialDays = ctx?.trialDays;
+  const requiresCard = ctx?.trialRequiresCard ?? true;
+  const trialDays = ctx?.trialDays ?? 7;
   const checkout = useUpgrade();
   const trial = useTrial();
+
+  // A card-backed trial IS checkout — Stripe applies the trial days to the
+  // subscription — so the button opens checkout but says what actually happens.
+  if (trialEligible && requiresCard) {
+    return (
+      <span className="inline-flex flex-col items-start gap-1">
+        <button type="button" className={className} onClick={checkout.start} disabled={checkout.busy}>
+          {checkout.busy
+            ? <><span className="spinner" /> Opening checkout…</>
+            : <><Icon name="zap" size={16} /> Start your {trialDays}-day free trial</>}
+        </button>
+        <span className="text-xs text-muted">
+          Nothing is charged today. Cancel any time in the first {trialDays} days and you pay nothing.
+        </span>
+        {checkout.err && <span className="text-xs text-red-300">{checkout.err}</span>}
+      </span>
+    );
+  }
 
   if (trialEligible) {
     return (
@@ -65,7 +84,7 @@ export function UpgradeButton({ label = "Upgrade to Premium", className = "btn b
         <button type="button" className={className} onClick={trial.start} disabled={trial.busy}>
           {trial.busy
             ? <><span className="spinner" /> Starting…</>
-            : <><Icon name="zap" size={16} /> Try Premium free for {trialDays ?? 7} days</>}
+            : <><Icon name="zap" size={16} /> Try Premium free for {trialDays} days</>}
         </button>
         <span className="text-xs text-muted">No card needed. Nothing charges automatically.</span>
         {trial.err && <span className="text-xs text-red-300">{trial.err}</span>}

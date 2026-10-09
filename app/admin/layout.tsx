@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { permissionsFor, requireStaff } from "../../lib/auth";
+import { ErrorBoundary } from "../_components/ErrorCatcher";
 import { AdminShell } from "./AdminShell";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // shown a page that would refuse them. The API routes check again anyway.
   return (
     <AdminShell email={staff.user.email ?? ""} role={staff.role} permissions={permissionsFor(staff.role)}>
-      {children}
+      <ErrorBoundary label="admin">{children}</ErrorBoundary>
     </AdminShell>
   );
 }

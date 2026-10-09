@@ -3,6 +3,7 @@ import { Fraunces, Inter } from "next/font/google";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github-dark.css";
 import "./globals.css";
+import { ErrorReporter } from "./_components/ErrorCatcher";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -40,6 +41,7 @@ export default function RootLayout({
         <noscript>
           <style>{`.reveal{opacity:1!important;transform:none!important}`}</style>
         </noscript>
+        <ErrorReporter />
         {children}
       </body>
     </html>

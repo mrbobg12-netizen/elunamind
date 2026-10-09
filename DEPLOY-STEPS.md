@@ -1,7 +1,8 @@
 # Deploying this update
 
-Covers everything built in Group A (uploads, transcripts, voice-over, translation,
-PPT download, mind maps) and Group B (no-card trial, sub-admins, support inbox).
+Covers Group A (uploads, transcripts, voice-over, translation, PPT download,
+mind maps), Group B (trial, sub-admins, support inbox) and Group C so far
+(error monitoring, card-backed trial with self-serve cancel).
 
 Order matters: **database first, code second.** The code is written to survive a
 missing migration, but the new features stay switched off until the SQL has run.
@@ -52,6 +53,7 @@ Both are safe to run twice, so re-run if you are unsure whether one went through
 |---|------|-----------------|
 | 1 | `supabase/006_uploads.sql` | `uploads ready` |
 | 2 | `supabase/007_trial_roles_support.sql` | `trial, roles and support ready` |
+| 3 | `supabase/008_errors_and_billing.sql` | `errors and billing ready` |
 
 `NOTICE: constraint ... does not exist, skipping` lines are normal on a first run.
 Anything starting with `ERROR:` is not — stop and send me the message.
@@ -66,8 +68,13 @@ Anything starting with `ERROR:` is not — stop and send me the message.
 - `support_tickets` and `support_messages` tables
 - `start_trial()` function, and updated `admin_overview()` / `admin_user_list()`
 
+### What 008 creates
+- `app_errors` + `error_groups`, and the `record_error` / `prune_errors` functions
+- `profiles.subscription_status`, `card_trial_ends_at`, `cancel_at_period_end`,
+  `current_period_end` — the billing state behind "renews on the 30th"
+
 ### Verify it worked
-Run this and check all five rows say `yes`:
+Run this and check all seven rows say `yes`:
 
 ```sql
 select 'uploads table'   as thing, to_regclass('public.uploads')          is not null as ok
@@ -75,7 +82,10 @@ union all select 'tickets table',  to_regclass('public.support_tickets')  is not
 union all select 'messages table', to_regclass('public.support_messages') is not null
 union all select 'trial column',   exists (select 1 from information_schema.columns
                                            where table_name='profiles' and column_name='trial_ends_at')
-union all select 'uploads bucket', exists (select 1 from storage.buckets where id='uploads');
+union all select 'uploads bucket', exists (select 1 from storage.buckets where id='uploads')
+union all select 'errors table',   to_regclass('public.app_errors')            is not null
+union all select 'billing columns',exists (select 1 from information_schema.columns
+                                           where table_name='profiles' and column_name='cancel_at_period_end');
 ```
 
 ---

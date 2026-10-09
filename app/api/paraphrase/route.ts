@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { captureRouteError } from "../../../lib/errors";
 
 export async function POST(req: Request) {
   const g = await guard(req, "paraphrase");
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ paraphrased });
   } catch (err) {
     console.error("paraphrase error:", err);
+    captureRouteError(err, req, { route: "/api/paraphrase", status: 500 });
     await g.refund();
     return NextResponse.json({ paraphrased: "Error generating paraphrased text." }, { status: 500 });
   }

@@ -3,6 +3,7 @@ import { openai, MODEL, clean, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { getOwnedUpload } from "../../../lib/uploads";
+import { captureRouteError } from "../../../lib/errors";
 
 // A pasted passage is capped by the plan rule, but a file the student already
 // spent an upload on gets the fuller budget: cutting it to 8k would quietly
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ notes, id });
   } catch (err) {
     console.error("notes error:", err);
+    captureRouteError(err, req, { route: "/api/notes", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Failed to generate notes." }, { status: 500 });
   }

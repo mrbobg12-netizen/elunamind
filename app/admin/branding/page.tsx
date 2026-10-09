@@ -6,7 +6,7 @@ import { Card, Field, Loading, Page, useToast } from "../ui";
 type Branding = { siteName: string; tagline: string; logoUrl: string; supportEmail: string; heroHeadline: string; heroSubline: string };
 type Flags = {
   aiDisabled: boolean; signupsOpen: boolean; blogEnabled: boolean; maintenanceNote: string;
-  trialEnabled: boolean; trialDays: number; supportEnabled: boolean;
+  trialEnabled: boolean; trialDays: number; trialRequiresCard: boolean; supportEnabled: boolean;
 };
 
 function Toggle({ on, onChange, label, hint, danger }: { on: boolean; onChange: (v: boolean) => void; label: string; hint: string; danger?: boolean }) {
@@ -116,14 +116,21 @@ export default function BrandingPage() {
             <Toggle on={f.trialEnabled} onChange={(v) => setF({ ...f, trialEnabled: v })}
               label="Offer a free Premium trial" hint="New accounts can try Premium once, with no card. Trials already running are unaffected." />
             {f.trialEnabled && (
-              <div className="pt-3">
-                <Field label="Trial length" hint="1 to 90 days">
-                  <input type="number" min={1} max={90} className="input !w-28"
-                    value={f.trialDays}
-                    onChange={(e) => setF({ ...f, trialDays: Math.min(90, Math.max(1, Number(e.target.value) || 1)) })} />
-                </Field>
-                <p className="mt-1.5 text-xs text-muted">Only changes trials started from now on.</p>
-              </div>
+              <>
+                <Toggle on={f.trialRequiresCard} onChange={(v) => setF({ ...f, trialRequiresCard: v })}
+                  label="Take a card for the trial"
+                  hint="On: Stripe runs the trial, nothing is charged until it ends, and it becomes a paid plan unless the user cancels — they can do that themselves at any time. Off: no card at all, and the trial just expires." />
+                <div className="pt-3">
+                  <Field label="Trial length" hint="1 to 90 days">
+                    <input type="number" min={1} max={90} className="input !w-28"
+                      value={f.trialDays}
+                      onChange={(e) => setF({ ...f, trialDays: Math.min(90, Math.max(1, Number(e.target.value) || 1)) })} />
+                  </Field>
+                  <p className="mt-1.5 text-xs text-muted">
+                    Only changes trials started from now on. Trials already running keep the length they were given.
+                  </p>
+                </div>
+              </>
             )}
             <div className="pt-4">
               <Field label="Site-wide notice" hint="empty = hidden">

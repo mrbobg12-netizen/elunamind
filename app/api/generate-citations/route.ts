@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { captureRouteError } from "../../../lib/errors";
 
 export async function POST(req: Request) {
   const g = await guard(req, "citations");
@@ -38,6 +39,7 @@ Prefer well-known books, journals and reputable sites.`;
     });
   } catch (err) {
     console.error("citations error:", err);
+    captureRouteError(err, req, { route: "/api/citations", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Failed to generate citations." }, { status: 500 });
   }

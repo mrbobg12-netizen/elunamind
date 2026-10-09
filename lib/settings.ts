@@ -32,8 +32,15 @@ export type Flags = {
   signupsOpen: boolean;
   blogEnabled: boolean;
   maintenanceNote: string;     // shown as a banner when not empty
-  trialEnabled: boolean;       // offer a no-card Premium trial to new accounts
+  trialEnabled: boolean;       // offer a Premium trial at all
   trialDays: number;           // how long that trial lasts
+  /**
+   * true  = the trial runs through Stripe, card on file, converts to paid
+   *         unless the user cancels. Standard SaaS, and the higher-converting
+   *         of the two.
+   * false = no card at all; the trial simply expires and nothing is charged.
+   */
+  trialRequiresCard: boolean;
   supportEnabled: boolean;     // let users open support tickets in the app
 };
 
@@ -70,6 +77,7 @@ export const DEFAULT_FLAGS: Flags = {
   maintenanceNote: "",
   trialEnabled: true,
   trialDays: 7,
+  trialRequiresCard: true,
   supportEnabled: true,
 };
 
@@ -121,6 +129,7 @@ function mergeFlags(stored: unknown): Flags {
     // a mistake rather than a policy, so it is clamped like every other limit.
     trialDays: clampInt(f.trialDays, 1, 90, DEFAULT_FLAGS.trialDays),
     trialEnabled: typeof f.trialEnabled === "boolean" ? f.trialEnabled : DEFAULT_FLAGS.trialEnabled,
+    trialRequiresCard: typeof f.trialRequiresCard === "boolean" ? f.trialRequiresCard : DEFAULT_FLAGS.trialRequiresCard,
     supportEnabled: typeof f.supportEnabled === "boolean" ? f.supportEnabled : DEFAULT_FLAGS.supportEnabled,
   };
 }

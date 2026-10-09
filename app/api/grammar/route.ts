@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
+import { captureRouteError } from "../../../lib/errors";
 
 export async function POST(req: Request) {
   const g = await guard(req, "grammar");
@@ -40,6 +41,7 @@ ${text}`;
     return NextResponse.json(parsed);
   } catch (err) {
     console.error("grammar error:", err);
+    captureRouteError(err, req, { route: "/api/grammar", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Failed to check grammar." }, { status: 500 });
   }

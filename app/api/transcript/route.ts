@@ -4,6 +4,7 @@ import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { TranscribeError, notesPrompt, transcribeAudio } from "../../../lib/transcribe";
 import { BUCKET, getOwnedUpload } from "../../../lib/uploads";
+import { captureRouteError } from "../../../lib/errors";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
     if (err instanceof TranscribeError)
       return NextResponse.json({ error: err.message }, { status: err.kind === "unsupported" ? 413 : 502 });
     console.error("transcript error:", err);
+    captureRouteError(err, req, { route: "/api/transcript", status: 500 });
     return NextResponse.json({ error: "Transcription failed. Please try again with a shorter or clearer recording." }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { MODEL, clean, openai, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { getOwnedUpload } from "../../../lib/uploads";
+import { captureRouteError } from "../../../lib/errors";
 
 export const maxDuration = 60;
 
@@ -81,6 +82,7 @@ Rules:
     return NextResponse.json({ translated, target, source: source || null, original: text });
   } catch (err) {
     console.error("translate error:", err);
+    captureRouteError(err, req, { route: "/api/translate", status: 500 });
     await g.refund();
     return NextResponse.json({ error: "Translation failed. Please try again." }, { status: 500 });
   }

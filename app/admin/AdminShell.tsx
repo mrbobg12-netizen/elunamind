@@ -13,6 +13,7 @@ const NAV: { href: string; label: string; icon: IconName; needs: Permission }[] 
   { href: "/admin/plans", label: "Plans & limits", icon: "zap", needs: "settings" },
   { href: "/admin/branding", label: "Branding & site", icon: "spark", needs: "settings" },
   { href: "/admin/blog", label: "Blog", icon: "notes", needs: "blog" },
+  { href: "/admin/errors", label: "Errors", icon: "ban", needs: "errors" },
   { href: "/admin/activity", label: "Activity log", icon: "history", needs: "audit" },
 ];
 

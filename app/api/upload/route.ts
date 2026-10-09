@@ -4,6 +4,7 @@ import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { openai, MODEL } from "../../../lib/ai";
 import { classify, extractDocx, extractPdf, extractPlainText, sniffLooksRight } from "../../../lib/extract";
 import { BUCKET, SIZE_LIMITS, storagePath } from "../../../lib/uploads";
+import { captureRouteError } from "../../../lib/errors";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -116,6 +117,7 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     console.error("extraction failed:", err);
+    captureRouteError(err, req, { route: "/api/upload", status: 500 });
     await db.from("uploads").update({ status: "failed", error: "extract" }).eq("id", row.id);
     return NextResponse.json({ id: row.id, status: "failed", error: "The file uploaded but could not be read. It may be damaged or password protected." }, { status: 422 });
   }
