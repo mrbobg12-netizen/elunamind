@@ -56,6 +56,7 @@ Both are safe to run twice, so re-run if you are unsure whether one went through
 | 2 | `supabase/007_trial_roles_support.sql` | `trial, roles and support ready` |
 | 3 | `supabase/008_errors_and_billing.sql` | `errors and billing ready` |
 | 4 | `supabase/009_site_content.sql` | `site content ready` |
+| 5 | `supabase/010_ai_providers.sql` | `ai providers ready` |
 
 `NOTICE: constraint ... does not exist, skipping` lines are normal on a first run.
 Anything starting with `ERROR:` is not — stop and send me the message.
@@ -80,8 +81,12 @@ Anything starting with `ERROR:` is not — stop and send me the message.
 - `bot_answers` + `bot_questions` — what the landing-page chat bubble says, and
   what visitors asked that it could not answer
 
+### What 010 creates
+- `ai_providers` — the AI keys, managed from **Admin → AI keys** instead of
+  from environment variables, so changing one takes a save and not a redeploy
+
 ### Verify it worked
-Run this and check all nine rows say `yes`:
+Run this and check all ten rows say `yes`:
 
 ```sql
 select 'uploads table'   as thing, to_regclass('public.uploads')          is not null as ok
@@ -94,7 +99,8 @@ union all select 'errors table',   to_regclass('public.app_errors')            i
 union all select 'billing columns',exists (select 1 from information_schema.columns
                                            where table_name='profiles' and column_name='cancel_at_period_end')
 union all select 'site pages',    to_regclass('public.site_pages')            is not null
-union all select 'bot answers',   to_regclass('public.bot_answers')           is not null;
+union all select 'bot answers',   to_regclass('public.bot_answers')           is not null
+union all select 'ai keys',       to_regclass('public.ai_providers')          is not null;
 ```
 
 ---

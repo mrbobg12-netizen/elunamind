@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
+import { MODEL, clean, complete, extractJson, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
 
@@ -22,7 +22,7 @@ No commentary, no extra keys, no markdown.
 Prefer well-known books, journals and reputable sites.`;
 
   try {
-    const res = await openai().chat.completions.create({
+    const res = await complete({
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       temperature: 0.2,

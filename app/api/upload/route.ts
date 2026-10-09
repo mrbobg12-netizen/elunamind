@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
-import { openai, MODEL } from "../../../lib/ai";
+import { MODEL, complete } from "../../../lib/ai";
 import { classify, extractDocx, extractPdf, extractPlainText, sniffLooksRight } from "../../../lib/extract";
 import { BUCKET, SIZE_LIMITS, storagePath } from "../../../lib/uploads";
 import { captureRouteError } from "../../../lib/errors";
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     else if (kind === "text") text = extractPlainText(bytes).text;
     else if (kind === "image") {
       const b64 = Buffer.from(bytes).toString("base64");
-      const res = await openai().chat.completions.create({
+      const res = await complete({
         model: MODEL, max_tokens: 1500, temperature: 0.2,
         messages: [{
           role: "user",

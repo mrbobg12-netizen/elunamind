@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
+import { MODEL, clean, complete, extractJson, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
 
@@ -36,7 +36,7 @@ Return JSON exactly like:
 {"nodes":[{"id":"root","parent":null,"label":"${topic}","details":"..."},{"id":"b1","parent":"root","label":"...","details":"..."},{"id":"b1a","parent":"b1","label":"...","details":"..."}]}`;
 
   try {
-    const res = await openai().chat.completions.create({
+    const res = await complete({
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       temperature: 0.5,

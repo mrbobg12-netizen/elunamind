@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MODEL, openai } from "../../../lib/ai";
+import { MODEL, complete } from "../../../lib/ai";
 import {
   AI_PER_IP_PER_HOUR, MAX_QUESTION, aiBudgetSpent, aiThrottled, bestMatch,
   loadAnswers, logQuestion, systemPrompt,
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
     }
 
     try {
-      const res = await openai().chat.completions.create({
+      const res = await complete({
         model: MODEL,
         max_tokens: 220,          // a chat bubble, not an essay
         temperature: 0.4,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MODEL, clean, openai, readJson } from "../../../lib/ai";
+import { MODEL, clean, complete, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { getOwnedUpload } from "../../../lib/uploads";
 import { captureRouteError } from "../../../lib/errors";
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
 
   try {
-    const res = await openai().chat.completions.create({
+    const res = await complete({
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       temperature: 0.2,

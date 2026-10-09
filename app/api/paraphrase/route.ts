@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai, MODEL, clean, readJson } from "../../../lib/ai";
+import { MODEL, clean, complete, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const res = await openai().chat.completions.create({
+    const res = await complete({
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       messages: [{

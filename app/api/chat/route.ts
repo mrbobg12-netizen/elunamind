@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai, MODEL, clean, readJson } from "../../../lib/ai";
+import { MODEL, clean, complete, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { contextFromUpload, getOwnedUpload } from "../../../lib/uploads";
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       ...(uploadId ? { upload_id: uploadId } : {}),
     });
 
-    const stream = await openai().chat.completions.create({
+    const stream = await complete({
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       temperature: 0.6,

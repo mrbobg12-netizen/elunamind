@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai, MODEL, clean, readJson } from "../../../lib/ai";
+import { MODEL, clean, complete, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
 
@@ -25,7 +25,7 @@ Format it neatly and clearly with "Day 1", "Day 2", etc. as headings and bullet 
 Make it motivational but realistic.`;
 
   try {
-    const res = await openai().chat.completions.create({
+    const res = await complete({
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       temperature: 0.7,

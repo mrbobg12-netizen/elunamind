@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MODEL, openai, readJson } from "../../../lib/ai";
+import { MODEL, complete, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { TranscribeError, notesPrompt, transcribeAudio } from "../../../lib/transcribe";
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 }
 
 async function summarise(transcript: string, fileName: string, maxTokens: number) {
-  const res = await openai().chat.completions.create({
+  const res = await complete({
     model: MODEL,
     max_tokens: maxTokens,
     temperature: 0.3,

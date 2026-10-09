@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
+import { MODEL, clean, complete, extractJson, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
 
@@ -23,7 +23,7 @@ Reply ONLY in valid JSON array format, like this:
 Do NOT include extra text before or after JSON.`;
 
   try {
-    const res = await openai().chat.completions.create({
+    const res = await complete({
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       messages: [{ role: "user", content: prompt }],

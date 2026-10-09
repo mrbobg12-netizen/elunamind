@@ -1,5 +1,5 @@
 import { toFile } from "openai";
-import { openai } from "./ai";
+import { audioProvider, complete, reportFailed, reportOk } from "./ai";
 
 /**
  * Speech to text.
@@ -11,8 +11,8 @@ import { openai } from "./ai";
  *   2. chat completions with an inline audio part, which is how Gemini and a
  *      few other OpenAI-compatible providers accept audio.
  *
- * Set OPENAI_TRANSCRIBE_MODEL to pick the model for path 1
- * (whisper-1, gpt-4o-mini-transcribe, …).
+ * The model for path 1 comes from the provider's own "transcribe model" field
+ * in the admin panel, falling back to OPENAI_TRANSCRIBE_MODEL.
  */
 
 export const TRANSCRIBE_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || "whisper-1";
@@ -40,16 +40,25 @@ export class TranscribeError extends Error {
 }
 
 async function viaTranscriptionsApi(bytes: Uint8Array, fileName: string, mime: string, language?: string) {
+  const { client, model, provider } = await audioProvider();
   const file = await toFile(bytes, fileName || "audio.mp3", { type: mime || "audio/mpeg" });
-  const res = await openai().audio.transcriptions.create({
-    file,
-    model: TRANSCRIBE_MODEL,
-    // "auto" means let the model decide, which is what omitting the field does.
-    ...(language && language !== "auto" ? { language } : {}),
-    response_format: "text",
-  });
-  // response_format "text" returns a bare string; some providers still wrap it.
-  return typeof res === "string" ? res : ((res as { text?: string }).text ?? "");
+  try {
+    const res = await client.audio.transcriptions.create({
+      file,
+      model,
+      // "auto" means let the model decide, which is what omitting the field does.
+      ...(language && language !== "auto" ? { language } : {}),
+      response_format: "text",
+    });
+    void reportOk(provider);
+    // response_format "text" returns a bare string; some providers still wrap it.
+    return typeof res === "string" ? res : ((res as { text?: string }).text ?? "");
+  } catch (err) {
+    // Recorded, but not fatal: the chat fallback below may still manage it,
+    // which is the normal case on providers with no transcription endpoint.
+    void reportFailed(provider, err);
+    throw err;
+  }
 }
 
 async function viaChatCompletions(bytes: Uint8Array, fileName: string, mime: string, language?: string) {
@@ -58,7 +67,7 @@ async function viaChatCompletions(bytes: Uint8Array, fileName: string, mime: str
     ? `Transcribe this recording word for word in ${language}. Output only the transcription.`
     : "Transcribe this recording word for word in the language it is spoken in. Output only the transcription, no commentary.";
 
-  const res = await openai().chat.completions.create({
+  const res = await complete({
     model: process.env.OPENAI_AUDIO_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini",
     max_tokens: 8000,
     temperature: 0,

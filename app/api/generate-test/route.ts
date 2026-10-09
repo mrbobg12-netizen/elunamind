@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai, MODEL, clean, readJson, extractJson } from "../../../lib/ai";
+import { MODEL, clean, complete, extractJson, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
 
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
 
   try {
-    const response = await openai().chat.completions.create({
+    const response = await complete({
       model: MODEL,
       messages: [
         {
