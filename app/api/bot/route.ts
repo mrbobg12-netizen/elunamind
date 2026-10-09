@@ -29,9 +29,15 @@ export async function GET() {
   });
 }
 
+/** The visitor's IP, whichever host we are on. Each platform names it differently. */
 function clientIp(req: Request) {
   const fwd = req.headers.get("x-forwarded-for") ?? "";
-  return (fwd.split(",")[0] || req.headers.get("x-nf-client-connection-ip") || "unknown").trim();
+  return (
+    fwd.split(",")[0] ||
+    req.headers.get("x-real-ip") ||                   // Vercel
+    req.headers.get("x-nf-client-connection-ip") ||   // Netlify
+    "unknown"
+  ).trim();
 }
 
 export async function POST(req: Request) {
