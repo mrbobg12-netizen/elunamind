@@ -25,7 +25,7 @@ export default function SuccessPage() {
 
   return (
     <div className="relative grid min-h-dvh place-items-center overflow-hidden px-4">
-      <div className="lamp-glow -left-10 top-10 h-72 w-72 bg-amber-400/18" />
+      <div className="lamp-glow -left-10 top-10 h-72 w-72 bg-violet-500/18" />
       <div className="lamp-glow bottom-0 right-0 h-72 w-72 bg-mint/15" style={{ animationDelay: "-6s" }} />
       <div className="glass-strong pop-in relative w-full max-w-md rounded-3xl p-9 text-center">
         <div className="mb-6 flex justify-center"><Logo /></div>

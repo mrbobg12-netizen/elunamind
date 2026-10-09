@@ -148,7 +148,7 @@ export function DropZone({
       }}
       onClick={() => !busy && ref.current?.click()}
       className={`cursor-pointer rounded-2xl border border-dashed p-6 text-center transition ${
-        over ? "border-amber-300/70 bg-amber-300/10" : "border-white/15 hover:border-white/30 hover:bg-white/[0.03]"
+        over ? "border-violet-400/70 bg-violet-500/10" : "border-white/15 hover:border-white/30 hover:bg-white/[0.03]"
       }`}
     >
       <input ref={ref} type="file" accept={accept} className="hidden"

@@ -56,7 +56,7 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
 export function LockedPanel({ title }: { title: string }) {
   return (
     <Panel className="relative overflow-hidden text-center">
-      <div className="lamp-glow -left-10 -top-10 h-48 w-48 bg-amber-400/18" />
+      <div className="lamp-glow -left-10 -top-10 h-48 w-48 bg-violet-500/18" />
       <div className="lamp-glow -bottom-10 -right-10 h-48 w-48 bg-indigo-500/18" />
       <div className="relative mx-auto max-w-md py-8">
         <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-white/10 text-lamp float-y"><Icon name="lock" size={26} /></div>

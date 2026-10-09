@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "./supabase/admin";
 import { DEFAULT_RULES, type Feature, type Rule } from "./plans";
+import { DEFAULT_SITE, normaliseSite, type SiteContent } from "./content";
 
 /**
  * Settings the admin can change from the panel, without a deploy.
@@ -49,6 +50,8 @@ export type Settings = {
   branding: Branding;
   pricing: Pricing;
   flags: Flags;
+  /** Every word on the public site. */
+  site: SiteContent;
 };
 
 export const DEFAULT_BRANDING: Branding = {
@@ -86,6 +89,7 @@ export const DEFAULTS: Settings = {
   branding: DEFAULT_BRANDING,
   pricing: DEFAULT_PRICING,
   flags: DEFAULT_FLAGS,
+  site: DEFAULT_SITE,
 };
 
 const TTL_MS = 10_000;
@@ -158,6 +162,7 @@ export async function getSettings(): Promise<Settings> {
       branding: merge(DEFAULT_BRANDING, byKey.branding),
       pricing: merge(DEFAULT_PRICING, byKey.pricing),
       flags: mergeFlags(byKey.flags),
+      site: normaliseSite(byKey.site),
     };
   } catch (err) {
     // Never take the site down because settings could not be read.
@@ -173,7 +178,7 @@ export function clearSettingsCache() {
   cache = null;
 }
 
-export async function saveSetting(key: "rules" | "branding" | "pricing" | "flags", value: unknown, actorId?: string) {
+export async function saveSetting(key: keyof Settings, value: unknown, actorId?: string) {
   const { error } = await supabaseAdmin()
     .from("app_settings")
     .upsert({ key, value, updated_at: new Date().toISOString(), updated_by: actorId ?? null });

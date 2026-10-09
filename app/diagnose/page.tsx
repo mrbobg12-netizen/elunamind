@@ -49,7 +49,7 @@ export default function DiagnosePage() {
       {!data && !error && <div className="mt-10 text-center"><span className="spinner mx-auto" /></div>}
 
       {data && typeof data.verdict === "string" && (
-        <p className={`mt-6 rounded-xl border p-4 text-sm ${/FIX/i.test(data.verdict) ? "border-amber-400/40 bg-amber-400/10 text-paper" : "border-mint/30 bg-mint/10 text-mint"}`}>
+        <p className={`mt-6 rounded-xl border p-4 text-sm ${/FIX/i.test(data.verdict) ? "border-violet-400/40 bg-violet-500/10 text-paper" : "border-mint/30 bg-mint/10 text-mint"}`}>
           {data.verdict}
         </p>
       )}

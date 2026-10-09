@@ -40,7 +40,7 @@ export default async function BlogIndex() {
     <div className="relative">
       <SiteNav />
       <section className="relative overflow-hidden px-4 pb-16 pt-36 sm:px-6">
-        <div className="lamp-glow left-1/2 top-0 h-72 w-[34rem] -translate-x-1/2 bg-amber-400/10" />
+        <div className="lamp-glow left-1/2 top-0 h-72 w-[34rem] -translate-x-1/2 bg-violet-500/10" />
         <div className="relative mx-auto max-w-3xl">
           <h1 className="text-4xl sm:text-5xl">Study notes from the {branding.siteName} team</h1>
           <p className="lede mt-4">How to revise, what we are building, and the honest limits of studying with AI.</p>

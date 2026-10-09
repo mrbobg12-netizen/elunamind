@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Bricolage_Grotesque, Inter } from "next/font/google";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github-dark.css";
 import "./globals.css";
@@ -11,15 +11,17 @@ const inter = Inter({
   display: "swap",
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+// Bricolage Grotesque for display: engineered letterforms with a little grit,
+// which suits a mark built from circuitry. Inter carries everything else.
+const display = Bricolage_Grotesque({
+  variable: "--font-display-face",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
 export const viewport: Viewport = {
-  themeColor: "#0b1020",
+  themeColor: "#05060e",
   width: "device-width",
   initialScale: 1,
 };
@@ -37,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${fraunces.variable} antialiased`}>
+      <body className={`${inter.variable} ${display.variable} antialiased`}>
         <noscript>
           <style>{`.reveal{opacity:1!important;transform:none!important}`}</style>
         </noscript>

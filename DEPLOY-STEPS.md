@@ -1,8 +1,9 @@
 # Deploying this update
 
 Covers Group A (uploads, transcripts, voice-over, translation, PPT download,
-mind maps), Group B (trial, sub-admins, support inbox) and Group C so far
-(error monitoring, card-backed trial with self-serve cancel).
+mind maps), Group B (trial, sub-admins, support inbox) and Group C
+(error monitoring, card-backed trial with self-serve cancel, and the redesigned
+public site).
 
 Order matters: **database first, code second.** The code is written to survive a
 missing migration, but the new features stay switched off until the SQL has run.
@@ -54,6 +55,7 @@ Both are safe to run twice, so re-run if you are unsure whether one went through
 | 1 | `supabase/006_uploads.sql` | `uploads ready` |
 | 2 | `supabase/007_trial_roles_support.sql` | `trial, roles and support ready` |
 | 3 | `supabase/008_errors_and_billing.sql` | `errors and billing ready` |
+| 4 | `supabase/009_site_content.sql` | `site content ready` |
 
 `NOTICE: constraint ... does not exist, skipping` lines are normal on a first run.
 Anything starting with `ERROR:` is not — stop and send me the message.
@@ -73,8 +75,13 @@ Anything starting with `ERROR:` is not — stop and send me the message.
 - `profiles.subscription_status`, `card_trial_ends_at`, `cancel_at_period_end`,
   `current_period_end` — the billing state behind "renews on the 30th"
 
+### What 009 creates
+- `site_pages` — privacy, terms, cookies and refunds, each with a starter body
+- `bot_answers` + `bot_questions` — what the landing-page chat bubble says, and
+  what visitors asked that it could not answer
+
 ### Verify it worked
-Run this and check all seven rows say `yes`:
+Run this and check all nine rows say `yes`:
 
 ```sql
 select 'uploads table'   as thing, to_regclass('public.uploads')          is not null as ok
@@ -85,7 +92,9 @@ union all select 'trial column',   exists (select 1 from information_schema.colu
 union all select 'uploads bucket', exists (select 1 from storage.buckets where id='uploads')
 union all select 'errors table',   to_regclass('public.app_errors')            is not null
 union all select 'billing columns',exists (select 1 from information_schema.columns
-                                           where table_name='profiles' and column_name='cancel_at_period_end');
+                                           where table_name='profiles' and column_name='cancel_at_period_end')
+union all select 'site pages',    to_regclass('public.site_pages')            is not null
+union all select 'bot answers',   to_regclass('public.bot_answers')           is not null;
 ```
 
 ---
@@ -127,6 +136,13 @@ almost always a missing environment variable, not the code.
 1. **Reset the site copy.** Admin → Branding & site → **Reset to defaults**, then
    Save. Your old tagline and hero text are stored in the database and would keep
    overriding the new wording.
+1. **Write the legal pages.** Admin → **Pages**. All four ship as a structure with
+   every gap marked `[like this]` and a warning block at the top. Fill them in,
+   delete the warning block, and have a lawyer read them before you take payments.
+   They are linked from the footer and are the ones Stripe checks for.
+1. **Put your logo in.** Admin → Branding & site → logo URL. Until you do, the
+   site draws its own version of the mark — a split brain with the spectrum and
+   the spark — which matches but is not your file.
 2. **Check the new switches.** Admin → Branding & site should now show
    *In-app support tickets* and *Offer a free Premium trial* with a length field.
 3. **Check the new limits.** Admin → Plans & limits should now list Uploads,

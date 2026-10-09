@@ -231,7 +231,7 @@ export default function ChatPage() {
               <>
                 <AttachedChip file={attach.file} onClear={attach.clear} />
                 {attach.file.kind === "audio" && (
-                  <p className="mb-2 px-1 text-xs text-amber-200/85">
+                  <p className="mb-2 px-1 text-xs text-lampsoft/85">
                     A recording has to be transcribed before I can read it —{" "}
                     <Link href={`/dashboard/transcript?file=${attach.file.id}`} className="underline underline-offset-2">open Lecture Transcripts</Link>, then come back.
                   </p>

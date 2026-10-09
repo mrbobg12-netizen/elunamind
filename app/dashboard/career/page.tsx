@@ -58,7 +58,7 @@ export default function CareerPage() {
                   <p className="mb-2 text-sm font-medium text-paper/85">{x.q}</p>
                   <div className="flex flex-wrap gap-2">
                     {x.options.map((o) => (
-                      <button key={o} type="button" onClick={() => setAnswers((a) => ({ ...a, [x.q]: o }))} className={`rounded-full border px-3.5 py-1.5 text-sm transition ${answers[x.q] === o ? "border-amber-400/60 bg-amber-400/15 text-paper" : "border-white/10 bg-white/5 text-paper/75 hover:border-white/25"}`}>{o}</button>
+                      <button key={o} type="button" onClick={() => setAnswers((a) => ({ ...a, [x.q]: o }))} className={`rounded-full border px-3.5 py-1.5 text-sm transition ${answers[x.q] === o ? "border-violet-400/60 bg-violet-500/15 text-paper" : "border-white/10 bg-white/5 text-paper/75 hover:border-white/25"}`}>{o}</button>
                     ))}
                   </div>
                 </div>

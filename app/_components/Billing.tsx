@@ -73,7 +73,7 @@ export function BillingCard() {
     <div className="space-y-4">
       {/* ---- what is happening right now ---- */}
       {trialing ? (
-        <div className="rounded-xl border border-amber-400/25 bg-amber-400/5 p-4">
+        <div className="rounded-xl border border-violet-400/25 bg-violet-500/5 p-4">
           <p className="flex items-center gap-2 text-sm font-medium text-paper">
             <Icon name="zap" size={15} className="text-lamp" />
             Premium trial · {left === 0 ? "ends today" : `${left} day${left === 1 ? "" : "s"} left`}

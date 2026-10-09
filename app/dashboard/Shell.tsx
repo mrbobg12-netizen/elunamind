@@ -13,7 +13,7 @@ function NavLink({ href, icon, label, active, locked, onClick }: { href: string;
   return (
     <Link href={href} onClick={onClick}
       className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-white/10 text-paper" : "text-muted hover:bg-white/5 hover:text-paper"}`}>
-      {active && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-amber-400 to-amber-200" />}
+      {active && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-s2 to-s5" />}
       <Icon name={icon} size={18} className={active ? "text-lamp" : ""} />
       <span className="flex-1 truncate">{label}</span>
       {locked && <Icon name="lock" size={13} className="text-mute/70" />}
@@ -54,7 +54,7 @@ function UsageMeter() {
             <li key={t.key}>
               <div className="mb-1 flex justify-between text-[0.72rem] text-muted"><span>{t.short}</span><span>{u.used}/{u.limit}</span></div>
               <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-200" style={{ width: `${w}%`, transition: "width .6s ease" }} />
+                <div className="h-full rounded-full bg-gradient-to-r from-s2 to-s5" style={{ width: `${w}%`, transition: "width .6s ease" }} />
               </div>
             </li>
           );
@@ -110,13 +110,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
       <div className="mt-auto space-y-3 pt-2">
         {(role === "admin" || role === "sub_admin") && (
-          <Link href="/admin" className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-sm text-lamp transition hover:bg-amber-400/15">
+          <Link href="/admin" className="flex items-center gap-3 rounded-xl border border-violet-400/30 bg-violet-500/10 px-3 py-2.5 text-sm text-lamp transition hover:bg-violet-500/15">
             <Icon name="shield" size={18} /> {role === "admin" ? "Admin panel" : "Staff panel"}
           </Link>
         )}
         <UsageMeter />
         <div className="flex items-center gap-3 rounded-xl px-2 py-1.5">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-200 text-sm font-semibold text-paper">{(email[0] || "U").toUpperCase()}</span>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-s2 to-s5 text-sm font-semibold text-paper">{(email[0] || "U").toUpperCase()}</span>
           <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-paper">{email.split("@")[0] || "You"}</p><p className="truncate text-xs text-muted">{onTrial ? "Premium trial" : plan === "premium" ? "Premium" : "Free plan"}</p></div>
           <button type="button" onClick={logout} title="Log out" className="rounded-lg p-2 text-muted transition hover:bg-white/10 hover:text-paper"><Icon name="logout" size={18} /></button>
         </div>
@@ -137,7 +137,7 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="relative min-h-dvh">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="lamp-glow -left-24 top-0 h-80 w-80 bg-amber-400/15" />
+        <div className="lamp-glow -left-24 top-0 h-80 w-80 bg-violet-500/15" />
         <div className="lamp-glow -right-24 bottom-0 h-96 w-96 bg-indigo-500/18" style={{ animationDelay: "-6s" }} />
       </div>
 

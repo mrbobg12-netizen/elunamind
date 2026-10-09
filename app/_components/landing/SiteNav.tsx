@@ -1,11 +1,11 @@
 import { getSettings } from "../../../lib/settings";
-import { NavBar } from "./NavBar";
+import { PillNav } from "./PillNav";
 
 /** Server wrapper: reads the admin's branding, then renders the interactive bar. */
 export async function SiteNav() {
   const { branding, flags } = await getSettings();
   return (
-    <NavBar
+    <PillNav
       siteName={branding.siteName}
       logoUrl={branding.logoUrl}
       blogEnabled={flags.blogEnabled}

@@ -12,14 +12,16 @@ import { useId, useRef, useState } from "react";
  *    its own written label. Validated against this surface, warn and error sit
  *    13.6 apart on the normal-vision scale — below the 15 floor — so hue alone
  *    must never be what tells them apart.
- *  - The amber accent is for the hovered/selected state, not for data.
+ *  - The hover state uses the mark's magenta end. Against the data blue it
+ *    measures CVD deltaE 7.3, which is inside the warn band, so hover is never
+ *    signalled by colour alone: the hovered row also gains a visible outline.
  */
 
-export const SURFACE = "#0e1428";
+export const SURFACE = "#0a0d1c";   // --ink-2
 const HUE = "#3987e5";        // the single data colour
 const HUE_SOFT = "#86b6ef";   // endpoint marker / emphasis within the same hue
 const GRID = "#223055";       // one step off the surface, recessive
-const ACCENT = "#f5b544";     // hover only
+const ACCENT = "#e838fd";     // the sweep's magenta end; hover only, never data
 
 export const LEVEL_COLOR: Record<string, string> = {
   warn: "#fab219",
@@ -201,14 +203,18 @@ export function RouteBars({ rows }: { rows: { route: string; n: number }[] }) {
             onFocus={() => setHover(r.route)}
             onBlur={() => setHover(null)}
             tabIndex={0}
-            className="group rounded-lg outline-none focus-visible:ring-1 focus-visible:ring-amber-300/60"
+            className="group rounded-lg outline-none focus-visible:ring-1 focus-visible:ring-violet-400/60"
           >
             <div className="mb-1 flex items-baseline justify-between gap-3 text-xs">
               <code className="min-w-0 truncate text-paper/85">{r.route}</code>
               <span className="shrink-0 tabular-nums text-paper">{fmt(r.n)}</span>
             </div>
             {/* 10px track, 4px rounded data-end, grows from one baseline */}
-            <div className="h-2.5 overflow-hidden rounded-r-[4px] bg-white/[0.06]">
+            <div
+              className="h-2.5 overflow-hidden rounded-r-[4px] bg-white/[0.06] transition-shadow duration-200"
+              // The ring is the real hover signal; the colour change supports it.
+              style={lit ? { boxShadow: `0 0 0 1.5px ${ACCENT}` } : undefined}
+            >
               <div
                 className="h-full rounded-r-[4px] transition-[width,background-color] duration-500"
                 style={{ width: `${Math.max(2, pct)}%`, background: lit ? ACCENT : HUE }}

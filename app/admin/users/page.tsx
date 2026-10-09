@@ -77,7 +77,7 @@ export default function UsersPage() {
           <span className="text-muted">Sort</span>
           {[["recent", "Newest"], ["usage", "Most usage"], ["email", "Email A–Z"]].map(([v, l]) => (
             <button key={v} type="button" onClick={() => { setSort(v); setPage(0); }}
-              className={`rounded-lg px-2.5 py-1 transition ${sort === v ? "bg-lamp text-[#231704]" : "text-muted hover:text-paper"}`}>{l}</button>
+              className={`rounded-lg px-2.5 py-1 transition ${sort === v ? "bg-lamp text-[#07040f]" : "text-muted hover:text-paper"}`}>{l}</button>
           ))}
         </div>
       </Card>

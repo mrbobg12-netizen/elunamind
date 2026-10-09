@@ -27,10 +27,10 @@ export default function CitationsPage() {
         {tool.loading && <Panel><Skeleton lines={6} /></Panel>}
         {!tool.loading && list.length > 0 && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3"><p className="text-xs text-amber-200/90">{note || "AI-generated citations can contain errors. Verify each source before using it."}</p><CopyButton label="Copy all" text={list.map((c) => c.text).join("\n\n")} /></div>
+            <div className="flex items-center justify-between gap-3"><p className="text-xs text-lampsoft/90">{note || "AI-generated citations can contain errors. Verify each source before using it."}</p><CopyButton label="Copy all" text={list.map((c) => c.text).join("\n\n")} /></div>
             {list.map((c, i) => (
               <div key={i} className="glass pop-in flex items-start gap-3 rounded-2xl p-4" style={{ animationDelay: `${i * 45}ms` }}>
-                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-amber-500/20 text-xs font-semibold text-amber-200">{i + 1}</span>
+                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-violet-500/20 text-xs font-semibold text-lampsoft">{i + 1}</span>
                 <p className="min-w-0 flex-1 text-sm leading-relaxed text-paper/85">{c.text}</p>
                 <CopyButton text={c.text} label="" />
               </div>

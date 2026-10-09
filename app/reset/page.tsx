@@ -41,7 +41,7 @@ export default function ResetPage() {
 
   return (
     <div className="relative grid min-h-dvh place-items-center overflow-hidden px-4">
-      <div className="lamp-glow -left-20 top-10 h-72 w-72 bg-amber-400/15" />
+      <div className="lamp-glow -left-20 top-10 h-72 w-72 bg-violet-500/15" />
       <div className="page-enter relative w-full max-w-md">
         <div className="mb-8 flex justify-center"><Logo /></div>
         <div className="glass-strong rounded-2xl p-8">

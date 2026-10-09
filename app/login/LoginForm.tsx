@@ -28,7 +28,7 @@ function SidePanel() {
 
   return (
     <div className="relative hidden overflow-hidden border-r border-white/10 p-12 lg:flex lg:flex-col lg:justify-between">
-      <div className="lamp-glow -left-16 top-24 h-80 w-80 bg-amber-400/18" style={{ animation: "lamp-pulse 8s ease-in-out infinite" }} />
+      <div className="lamp-glow -left-16 top-24 h-80 w-80 bg-violet-500/18" style={{ animation: "lamp-pulse 8s ease-in-out infinite" }} />
       <div className="lamp-glow -right-10 bottom-0 h-72 w-72 bg-indigo-500/18" />
 
       <div className="relative"><Logo /></div>
@@ -134,7 +134,7 @@ export function LoginForm() {
       <SidePanel />
 
       <div className="relative flex items-center justify-center px-4 py-10">
-        <div className="lamp-glow -right-10 -top-10 h-56 w-56 bg-amber-400/15 lg:hidden" />
+        <div className="lamp-glow -right-10 -top-10 h-56 w-56 bg-violet-500/15 lg:hidden" />
 
         <div className="page-enter relative w-full max-w-md">
           <div className="mb-8 lg:hidden"><Logo /></div>
@@ -151,7 +151,7 @@ export function LoginForm() {
             {(["signin", "signup"] as const).map((m) => (
               <button key={m} type="button" disabled={m === "signup" && !signupsOpen}
                 onClick={() => { setMode(m); setError(""); setInfo(""); }}
-                className={`relative z-10 flex-1 rounded-lg py-2 text-sm font-medium transition-colors disabled:opacity-50 ${mode === m ? "text-[#231704]" : "text-muted hover:text-paper"}`}>
+                className={`relative z-10 flex-1 rounded-lg py-2 text-sm font-medium transition-colors disabled:opacity-50 ${mode === m ? "text-[#07040f]" : "text-muted hover:text-paper"}`}>
                 {m === "signin" ? "Log in" : signupsOpen ? "Sign up" : "Sign up paused"}
               </button>
             ))}

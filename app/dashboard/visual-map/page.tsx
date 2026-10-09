@@ -6,7 +6,7 @@ import { ErrorBox, Field, GenerateButton, Panel, Skeleton, ToolFrame, useToolRun
 type Node = { id: string; parent: string | null; label: string; details: string };
 type Placed = Node & { x: number; y: number; w: number; h: number; depth: number; side: 1 | -1 };
 
-const BRANCH_COLORS = ["#f5b544", "#6ee7c7", "#a78bfa", "#60a5fa", "#fb7185", "#34d399"];
+const BRANCH_COLORS = ["#00b4fc", "#e838fd", "#00f0d4", "#9653fa", "#fb7185", "#6ee7c7"];
 const CHAR_W = 7.4, PAD_X = 18, ROW_H = 38, GAP_Y = 14, COL_GAP = 58;
 
 /** Classic mind map: root in the middle, branches fanning left and right. */
@@ -208,7 +208,7 @@ export default function VisualMapPage() {
 
                 {lay.placed.map((p) => {
                   const isRoot = p.id === lay.rootId;
-                  const c = isRoot ? "#f5b544" : lay.colorOf.get(p.id) ?? "#94a0bd";
+                  const c = isRoot ? "#8b6cff" : lay.colorOf.get(p.id) ?? "#8d99bd";
                   const active = sel === p.id;
                   const label = p.label.length > 30 ? `${p.label.slice(0, 29)}…` : p.label;
                   return (
@@ -222,7 +222,7 @@ export default function VisualMapPage() {
                       <text x={p.x + p.w / 2} y={p.y + p.h / 2} textAnchor="middle" dominantBaseline="central"
                         fontSize={isRoot ? 15 : p.depth === 1 ? 13 : 12}
                         fontWeight={isRoot || p.depth === 1 ? 600 : 400}
-                        fill={isRoot ? "#231704" : "#eef1f8"}>
+                        fill={isRoot ? "#07040f" : "#eef1f8"}>
                         {label}
                       </text>
                     </g>
@@ -233,7 +233,7 @@ export default function VisualMapPage() {
 
             {selected && (
               <Panel className="pop-in">
-                <h3 className="mb-1 font-display text-base" style={{ color: lay.colorOf.get(selected.id) ?? "#f5b544" }}>
+                <h3 className="mb-1 font-display text-base" style={{ color: lay.colorOf.get(selected.id) ?? "#8b6cff" }}>
                   {selected.label}
                 </h3>
                 <p className="text-sm leading-relaxed text-paper/80">{selected.details || "No extra detail for this one."}</p>

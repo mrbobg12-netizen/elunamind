@@ -35,7 +35,7 @@ export default function DemoCheckout() {
 
   return (
     <div className="relative grid min-h-dvh place-items-center overflow-hidden px-4 py-10">
-      <div className="lamp-glow -left-20 top-0 h-72 w-72 bg-amber-400/15" />
+      <div className="lamp-glow -left-20 top-0 h-72 w-72 bg-violet-500/15" />
       <div className="lamp-glow -right-20 bottom-0 h-72 w-72 bg-indigo-500/15" />
 
       <div className="page-enter relative w-full max-w-4xl">
@@ -44,7 +44,7 @@ export default function DemoCheckout() {
           <Link href="/pricing" className="text-sm text-muted transition-colors hover:text-paper">← Back to plans</Link>
         </div>
 
-        <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-paper">
+        <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-violet-400/40 bg-violet-500/10 px-4 py-3 text-sm text-paper">
           <Icon name="spark" size={16} className="shrink-0 text-lamp" />
           <span><span className="text-lamp">Demo mode.</span> No card is charged and nothing is sent to a payment provider. The details below are fake.</span>
         </div>

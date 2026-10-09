@@ -59,8 +59,8 @@ export default async function BlogPost({ params }: Props) {
       </article>
 
       <section className="px-4 pb-24 sm:px-6">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-amber-400/25 p-8 text-center"
-          style={{ background: "radial-gradient(120% 120% at 50% 0%, rgba(245,181,68,.14), rgba(11,16,32,0) 70%)" }}>
+        <div className="mx-auto max-w-2xl rounded-2xl border border-violet-400/25 p-8 text-center"
+          style={{ background: "radial-gradient(120% 120% at 50% 0%, rgba(139,108,255,.14), rgba(11,16,32,0) 70%)" }}>
           <h2 className="text-2xl">Try the tutor on your own subject</h2>
           <p className="lede mx-auto mt-2 text-sm">Free to start, no card needed.</p>
           <Link href="/login?mode=signup&next=/dashboard" className="btn btn-primary mt-5">Start free</Link>

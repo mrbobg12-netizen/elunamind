@@ -12,6 +12,9 @@ const NAV: { href: string; label: string; icon: IconName; needs: Permission }[] 
   { href: "/admin/users", label: "Users", icon: "users", needs: "users.view" },
   { href: "/admin/plans", label: "Plans & limits", icon: "zap", needs: "settings" },
   { href: "/admin/branding", label: "Branding & site", icon: "spark", needs: "settings" },
+  { href: "/admin/site", label: "Website", icon: "globe", needs: "settings" },
+  { href: "/admin/pages", label: "Pages", icon: "file", needs: "settings" },
+  { href: "/admin/bot", label: "Chat bubble", icon: "chat", needs: "settings" },
   { href: "/admin/blog", label: "Blog", icon: "notes", needs: "blog" },
   { href: "/admin/errors", label: "Errors", icon: "ban", needs: "errors" },
   { href: "/admin/activity", label: "Activity log", icon: "history", needs: "audit" },
@@ -51,7 +54,7 @@ export function AdminShell({ email, role, permissions, children }:
           <Icon name={n.icon} size={18} className={isActive(n.href) ? "text-lamp" : ""} />
           <span className="flex-1">{n.label}</span>
           {n.href === "/admin/support" && waiting > 0 && (
-            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-lamp px-1.5 text-[0.68rem] font-semibold text-[#231704]">{waiting}</span>
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-lamp px-1.5 text-[0.68rem] font-semibold text-[#07040f]">{waiting}</span>
           )}
         </Link>
       ))}

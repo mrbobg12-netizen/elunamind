@@ -33,8 +33,8 @@ export async function PricingCards() {
         <Link href="/login?mode=signup&next=/dashboard" className="btn btn-ghost mt-8 w-full">Create free account</Link>
       </div>
 
-      <div className="glass-strong relative rounded-2xl p-7" style={{ borderColor: "rgba(245,181,68,.35)" }}>
-        <div className="lamp-glow -right-10 -top-10 h-40 w-40 bg-amber-400/20" />
+      <div className="glass-strong relative rounded-2xl p-7" style={{ borderColor: "rgba(139,108,255,.35)" }}>
+        <div className="lamp-glow -right-10 -top-10 h-40 w-40 bg-violet-500/20" />
         <div className="relative">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-xl text-paper">{pricing.premiumName}</h3>

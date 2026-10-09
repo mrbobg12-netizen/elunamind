@@ -68,10 +68,10 @@ export default function AccountPage() {
 
       <div className="space-y-5">
         <section className="glass-strong relative overflow-hidden rounded-2xl p-6">
-          <div className="lamp-glow -right-12 -top-12 h-44 w-44 bg-amber-400/15" />
+          <div className="lamp-glow -right-12 -top-12 h-44 w-44 bg-violet-500/15" />
           <div className="relative flex flex-wrap items-start justify-between gap-5">
             <div className="flex items-center gap-4">
-              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-lamp font-display text-xl text-[#231704]">
+              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-lamp font-display text-xl text-[#07040f]">
                 {(email[0] || "U").toUpperCase()}
               </span>
               <div className="min-w-0">
@@ -107,7 +107,7 @@ export default function AccountPage() {
           </ul>
           <p className="mt-4 text-xs text-muted">Everything resets at midnight UTC.</p>
           {onTrial ? (
-            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/25 bg-amber-400/5 p-4">
+            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-violet-400/25 bg-violet-500/5 p-4">
               <p className="min-w-0 flex-1 text-sm text-paper/85">
                 Your trial has {trialDaysLeft(trialEndsAt)} day{trialDaysLeft(trialEndsAt) === 1 ? "" : "s"} left. When it ends you drop back to the
                 free plan automatically — no card was taken and nothing will be charged.
@@ -115,7 +115,7 @@ export default function AccountPage() {
               <UpgradeButton label="Keep Premium" className="btn btn-primary btn-sm" />
             </div>
           ) : !premium && (
-            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/25 bg-amber-400/5 p-4">
+            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-violet-400/25 bg-violet-500/5 p-4">
               <p className="min-w-0 flex-1 text-sm text-paper/85">
                 {trialEligible
                   ? "Premium raises every limit and unlocks every locked tool. Try it free first — no card needed."

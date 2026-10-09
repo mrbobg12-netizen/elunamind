@@ -20,7 +20,7 @@ export default function GrammarPage() {
           <Field label="Your text" hint={`${text.length}/6000`}><textarea className="input" rows={7} maxLength={6000} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste the text you want to fix…" /></Field>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <div className="flex gap-1 rounded-xl bg-white/5 p-1">
-              {TONES.map((t) => <button key={t} type="button" onClick={() => setTone(t)} className={`rounded-lg px-3 py-1.5 text-sm transition ${tone === t ? "bg-lamp text-[#231704]" : "text-muted hover:text-paper"}`}>{t}</button>)}
+              {TONES.map((t) => <button key={t} type="button" onClick={() => setTone(t)} className={`rounded-lg px-3 py-1.5 text-sm transition ${tone === t ? "bg-lamp text-[#07040f]" : "text-muted hover:text-paper"}`}>{t}</button>)}
             </div>
             <GenerateButton loading={tool.loading} disabled={!text.trim()} onClick={generate} label="Fix my writing" loadingLabel="Checking…" />
           </div>

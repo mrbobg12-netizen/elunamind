@@ -110,7 +110,7 @@ export default function TranscriptPage() {
               <p className="mb-3 flex items-center gap-1.5 text-xs text-muted"><Icon name="check" size={13} className="text-emerald-300" /> Already transcribed earlier — this did not use an allowance.</p>
             )}
             {!result.notes && (
-              <p className="mb-3 text-xs text-amber-200/80">The transcript is ready, but the notes could not be generated this time. Copy the transcript into Smart Notes to try again.</p>
+              <p className="mb-3 text-xs text-lampsoft/80">The transcript is ready, but the notes could not be generated this time. Copy the transcript into Smart Notes to try again.</p>
             )}
 
             <div ref={printRef}>

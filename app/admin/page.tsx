@@ -95,7 +95,7 @@ export default function AdminOverview() {
         <div className="flex gap-1 rounded-xl bg-white/5 p-1">
           {[7, 14, 30].map((d) => (
             <button key={d} type="button" onClick={() => setDays(d)}
-              className={`rounded-lg px-3 py-1.5 text-sm transition ${days === d ? "bg-lamp text-[#231704]" : "text-muted hover:text-paper"}`}>
+              className={`rounded-lg px-3 py-1.5 text-sm transition ${days === d ? "bg-lamp text-[#07040f]" : "text-muted hover:text-paper"}`}>
               {d}d
             </button>
           ))}

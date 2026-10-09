@@ -177,7 +177,7 @@ export default function ErrorsPage() {
         {toastNode}
         <Card>
           <div className="mx-auto max-w-lg py-8 text-center">
-            <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-amber-400/15 text-lamp">
+            <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-violet-500/15 text-lamp">
               <Icon name="ban" size={22} />
             </div>
             <h2 className="font-display text-lg text-paper">One migration to run first</h2>

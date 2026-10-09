@@ -112,7 +112,7 @@ export default function PresentationPage() {
               <span className="text-xs text-muted">Theme</span>
               {DECK_THEMES.map((t) => (
                 <button key={t.name} type="button" onClick={() => setTheme(t)}
-                  className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs transition ${theme.name === t.name ? "border-amber-400/60 bg-amber-400/10 text-paper" : "border-white/10 text-muted hover:text-paper"}`}>
+                  className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs transition ${theme.name === t.name ? "border-violet-400/60 bg-violet-500/10 text-paper" : "border-white/10 text-muted hover:text-paper"}`}>
                   <span className="flex gap-0.5">
                     <span className="h-3 w-3 rounded-sm" style={{ background: `#${t.bg}` }} />
                     <span className="h-3 w-3 rounded-sm" style={{ background: `#${t.accent}` }} />

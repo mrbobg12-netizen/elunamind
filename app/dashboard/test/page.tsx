@@ -57,7 +57,7 @@ export default function TestPage() {
                   <div className="grid gap-2 sm:grid-cols-2">
                     {q.options.map((o, oi) => {
                       const picked = mcq[qi] === oi; const right = q.correctIndex === oi;
-                      const cls = submitted ? (right ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : picked ? "border-red-400/60 bg-red-500/15 text-red-100" : "border-white/10 text-slate-400") : picked ? "border-amber-400/60 bg-amber-400/15 text-paper" : "border-white/10 text-paper/75 hover:border-white/25 hover:bg-white/5";
+                      const cls = submitted ? (right ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : picked ? "border-red-400/60 bg-red-500/15 text-red-100" : "border-white/10 text-slate-400") : picked ? "border-violet-400/60 bg-violet-500/15 text-paper" : "border-white/10 text-paper/75 hover:border-white/25 hover:bg-white/5";
                       return <button key={oi} type="button" disabled={submitted} onClick={() => setMcq((a) => a.map((v, k) => (k === qi ? oi : v)))} className={`rounded-xl border px-3.5 py-2.5 text-left text-sm transition ${cls}`}>{o}</button>;
                     })}
                   </div>
@@ -73,7 +73,7 @@ export default function TestPage() {
                   <div className="flex gap-2">
                     {[true, false].map((v) => {
                       const picked = tf[qi] === v; const right = q.answer === v;
-                      const cls = submitted ? (right ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : picked ? "border-red-400/60 bg-red-500/15 text-red-100" : "border-white/10 text-slate-400") : picked ? "border-amber-400/60 bg-amber-400/15 text-paper" : "border-white/10 text-paper/75 hover:border-white/25";
+                      const cls = submitted ? (right ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : picked ? "border-red-400/60 bg-red-500/15 text-red-100" : "border-white/10 text-slate-400") : picked ? "border-violet-400/60 bg-violet-500/15 text-paper" : "border-white/10 text-paper/75 hover:border-white/25";
                       return <button key={String(v)} type="button" disabled={submitted} onClick={() => setTf((a) => a.map((x, k) => (k === qi ? v : x)))} className={`min-w-24 rounded-xl border px-4 py-2 text-sm transition ${cls}`}>{v ? "True" : "False"}</button>;
                     })}
                   </div>
