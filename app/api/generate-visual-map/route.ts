@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MODEL, clean, complete, extractJson, readJson } from "../../../lib/ai";
+import { aiErrorMessage, clean, complete, extractJson, MODEL, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
 
@@ -95,6 +95,6 @@ Return JSON exactly like:
     console.error("visual-map error:", err);
     captureRouteError(err, req, { route: "/api/visual-map", status: 500 });
     await g.refund();
-    return NextResponse.json({ error: "Could not build the mind map. Please try again." }, { status: 500 });
+    return NextResponse.json({ error: aiErrorMessage(err, "Could not build the mind map. Please try again.") }, { status: 500 });
   }
 }

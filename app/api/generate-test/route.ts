@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { MODEL, clean, complete, extractJson, readJson } from "../../../lib/ai";
+import { aiErrorMessage, clean, complete, extractJson, MODEL, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
+
+// Vercel gives a function 10 seconds unless it is told otherwise, and an AI
+// answer of any length takes longer than that. Without this line the request is
+// killed mid-generation and the user sees a failure with nothing in the logs.
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const g = await guard(req, "test");
@@ -121,6 +126,6 @@ Keep language concise and student-friendly.`
     console.error("generate-test error:", err?.message || err);
     captureRouteError(err, req, { route: "/api/test", status: 500 });
     await g.refund();
-    return NextResponse.json({ error: "Server error." }, { status: 500 });
+    return NextResponse.json({ error: aiErrorMessage(err, "Server error.") }, { status: 500 });
   }
 }

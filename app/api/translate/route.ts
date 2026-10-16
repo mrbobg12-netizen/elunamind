@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MODEL, clean, complete, readJson } from "../../../lib/ai";
+import { aiErrorMessage, clean, complete, MODEL, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { getOwnedUpload } from "../../../lib/uploads";
 import { captureRouteError } from "../../../lib/errors";
@@ -84,6 +84,6 @@ Rules:
     console.error("translate error:", err);
     captureRouteError(err, req, { route: "/api/translate", status: 500 });
     await g.refund();
-    return NextResponse.json({ error: "Translation failed. Please try again." }, { status: 500 });
+    return NextResponse.json({ error: aiErrorMessage(err, "Translation failed. Please try again.") }, { status: 500 });
   }
 }

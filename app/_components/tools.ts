@@ -27,6 +27,7 @@ export const TOOLS: Tool[] = [
   { key: "grammar", slug: "grammar", title: "Grammar Fixer", short: "Grammar", desc: "Fix grammar and tone, and see exactly what changed and why.", icon: "grammar", premium: true, grad: ["#22c55e", "#06b6d4"] },
   { key: "paraphrase", slug: "paraphrase", title: "Paraphraser", short: "Paraphrase", desc: "Rewrite text in clear, natural English while keeping the meaning.", icon: "paraphrase", premium: true, grad: ["#3b82f6", "#a855f7"] },
   { key: "citations", slug: "citations", title: "Citation Maker", short: "Citations", desc: "APA, MLA and Chicago citations for your topic in seconds.", icon: "cite", premium: true, grad: ["#eab308", "#f97316"] },
+  { key: "humanize", slug: "humanize", title: "Make It Sound Human", short: "Humanize", desc: "Rewrite a draft in your own voice, with the reading level and the stock phrases measured before and after.", icon: "wand", premium: true, grad: ["#8b5cf6", "#f472b6"] },
 ];
 
 export const TOOL_BY_KEY = Object.fromEntries(TOOLS.map((t) => [t.key, t])) as Record<Feature, Tool>;

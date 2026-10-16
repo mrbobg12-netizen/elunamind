@@ -8,6 +8,7 @@ import { Speak } from "../../_components/Speak";
 import { useUsage } from "../../_components/UsageProvider";
 import { UpgradeButton } from "../../_components/Upgrade";
 import { CopyButton } from "../../_components/ToolUI";
+import { ERROR_MARKER, STALL_MS, Stalled, readWithin } from "../../../lib/stream-client";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string; error?: boolean; upgrade?: boolean; file?: string };
 type ChatItem = { id: string; title: string; updated_at: string };
@@ -74,10 +75,12 @@ export default function ChatPage() {
     const patch = (p: Partial<Msg>) => setMessages((m) => m.map((x) => (x.id === asstId ? { ...x, ...p } : x)));
 
     try {
-      const res = await fetch("/api/chat", {
+      // A deadline on the request itself as well as on the stream: a server that
+      // never replies at all used to leave this spinning just as long.
+      const res = await readWithin(fetch("/api/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chatId: activeRef.current, message: text, uploadId: attached?.id ?? null }), signal: ctrl.signal,
-      });
+      }), STALL_MS * 2);
       if (res.status === 401) { window.location.href = "/login?next=/dashboard/chat"; return; }
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -94,19 +97,39 @@ export default function ChatPage() {
         const dec = new TextDecoder();
         let acc = "";
         for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          acc += dec.decode(value, { stream: true });
-          if (acc.includes("[[ERROR]]")) {
-            patch({ content: "The AI could not answer right now. Your message was not counted, please try again.", error: true });
-            acc = "";
+          let chunk: ReadableStreamReadResult<Uint8Array>;
+          try {
+            chunk = await readWithin(reader.read(), STALL_MS);
+          } catch {
+            // Nothing has arrived for half a minute. Keep whatever was said and
+            // stop, instead of leaving the user watching a cursor blink.
+            ctrl.abort();
+            patch(acc.trim()
+              ? { content: `${acc}\n\n---\n*The answer was cut off — the connection went quiet. Ask again to carry on.*` }
+              : { content: "The AI took too long to answer. Your message was not counted — please try again.", error: true });
+            break;
+          }
+          if (chunk.done) break;
+          acc += dec.decode(chunk.value, { stream: true });
+          if (acc.includes(ERROR_MARKER.trim())) {
+            // The marker only ever arrives when the server has nothing else, but
+            // keep any partial text in case that changes.
+            const partial = acc.replace(ERROR_MARKER.trim(), "").trim();
+            patch(partial
+              ? { content: partial }
+              : { content: "The AI could not answer right now. Your message was not counted, please try again.", error: true });
             break;
           }
           patch({ content: acc });
         }
       }
     } catch (e) {
-      if ((e as Error).name !== "AbortError") patch({ content: "Connection problem. Please try again.", error: true });
+      if (e instanceof Stalled) {
+        ctrl.abort();
+        patch({ content: "The server did not respond. Your message was not counted — please try again.", error: true });
+      } else if ((e as Error).name !== "AbortError") {
+        patch({ content: "Connection problem. Please try again.", error: true });
+      }
     } finally {
       setStreaming(false);
       abortRef.current = null;

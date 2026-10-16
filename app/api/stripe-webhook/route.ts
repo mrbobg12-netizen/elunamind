@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { stripe } from "../../../lib/stripe";
+import { stripe, stripeConfig } from "../../../lib/stripe";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { captureError } from "../../../lib/errors";
 
@@ -39,9 +39,20 @@ export async function POST(req: Request) {
   const sig = req.headers.get("stripe-signature");
   if (!sig) return NextResponse.json({ error: "Missing stripe-signature" }, { status: 400 });
 
+  const config = await stripeConfig();
+  if (!config.webhookSecret) {
+    // Nothing can be verified, so nothing is acted on. Said out loud because the
+    // alternative is a customer paying and silently staying on the free plan.
+    console.error("Webhook received but no signing secret is configured.");
+    void captureError(new Error("Stripe webhook received with no signing secret configured"), {
+      level: "fatal", route: "/api/stripe-webhook", status: 503,
+    });
+    return NextResponse.json({ error: "Webhook signing secret is not configured." }, { status: 503 });
+  }
+
   let event: Stripe.Event;
   try {
-    event = stripe().webhooks.constructEvent(await req.text(), sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = (await stripe()).webhooks.constructEvent(await req.text(), sig, config.webhookSecret);
   } catch (err: any) {
     console.error("Webhook signature error:", err?.message);
     void captureError(err, { level: "warn", route: "/api/stripe-webhook", status: 400 });

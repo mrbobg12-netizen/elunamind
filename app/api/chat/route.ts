@@ -1,23 +1,34 @@
 import { NextResponse } from "next/server";
-import { MODEL, clean, complete, readJson } from "../../../lib/ai";
+import { MODEL, clean, complete, explain, readJson, streamComplete } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { contextFromUpload, getOwnedUpload } from "../../../lib/uploads";
 import { captureRouteError } from "../../../lib/errors";
+import { chatStream } from "../../../lib/chat-stream";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const SYSTEM = `You are Eluna, a friendly and sharp AI study tutor inside the Eluna Mind app.
-- Explain step by step, in simple language, with short examples.
-- Reply in the same language the student writes in.
-- Use short paragraphs, bullet points and **bold** key terms.
-- Write every formula, equation or symbol in LaTeX: $x^2$ inline, $$...$$ on its own line. Never write maths as plain text like "x^2" or "sqrt(x)".
-- Put code in fenced blocks with the language, like \`\`\`python.
+const SYSTEM = `You are Eluna, a sharp and friendly AI study tutor inside the Eluna Mind app.
+
+How to answer
+- Lead with the answer or the first step. No "Great question!", no restating what was asked, no summary of what you are about to do.
+- Teach in order: what it is, why it works, then a worked example with real numbers.
+- Show every step of a calculation or derivation. Never jump from the question to the result.
+- Keep paragraphs to two or three sentences. Break anything longer into bullets or numbered steps.
+- **Bold** the terms a student would be tested on. Use ## headings only when the answer has three or more distinct parts.
+- End a substantial answer with one line that either checks understanding or names the next thing to learn. Skip it on short answers.
+
+Formatting rules
+- Every formula, equation, variable or symbol goes in LaTeX: $x^2$ inline, $$...$$ on its own line. Never write maths as plain text like "x^2", "sqrt(x)" or "x_1".
+- Code goes in fenced blocks with the language, like \`\`\`python.
 - Use a markdown table when comparing three or more things.
-- If a question is unclear, make a sensible assumption and say so, or ask one short clarifying question.
-- For homework, guide the student to understand rather than only dumping the final answer.
-- Be honest when you are not sure. Do not invent facts, sources or quotes.`;
+
+Honesty
+- Reply in the same language the student writes in.
+- If a question is unclear, make the most sensible assumption, say which one you made, and answer. Only ask a question back when the answer would otherwise be useless.
+- For homework, work through the method with the student rather than handing over only the final answer.
+- Say plainly when you are not sure. Never invent facts, sources, quotes or numbers.`;
 
 export async function POST(req: Request) {
   const g = await guard(req, "chat");
@@ -79,11 +90,10 @@ export async function POST(req: Request) {
       ...(uploadId ? { upload_id: uploadId } : {}),
     });
 
-    const stream = await complete({
+    const payload = {
       model: MODEL,
       max_tokens: g.rule.maxTokens,
       temperature: 0.6,
-      stream: true,
       messages: [
         { role: "system", content: SYSTEM },
         ...history,
@@ -91,32 +101,31 @@ export async function POST(req: Request) {
         ...(fileContext ? [{ role: "system" as const, content: fileContext }] : []),
         { role: "user", content: message },
       ],
-    });
+    };
 
-    const encoder = new TextEncoder();
+    // Throws if no provider manages to say a single word, which is handled by the
+    // catch below as a clean JSON error instead of an empty stream.
+    const handle = await streamComplete(payload);
+
     const cid = chatId;
-    let full = "";
 
-    const rs = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of stream) {
-            const t = chunk.choices[0]?.delta?.content;
-            if (t) { full += t; controller.enqueue(encoder.encode(t)); }
-          }
-          if (!full.trim()) throw new Error("Empty AI response");
-        } catch (err) {
-          console.error("chat stream error:", err);
-          if (!full.trim()) {
-            await g.refund();
-            try { controller.enqueue(encoder.encode("\n[[ERROR]]")); } catch {}
-          }
-        }
-        if (full.trim()) {
-          await db.from("chat_messages").insert({ chat_id: cid, user_id: userId, role: "assistant", content: full });
-          await db.from("chats").update({ updated_at: new Date().toISOString() }).eq("id", cid);
-        }
-        try { controller.close(); } catch {}
+    const rs = chatStream({
+      chunks: handle.chunks,
+      abort: () => handle.abort(),
+      retry: async () => {
+        const res = await complete(payload);
+        return res?.choices?.[0]?.message?.content ?? "";
+      },
+      refund: () => g.refund(),
+      save: async (answer) => {
+        await db.from("chat_messages").insert({ chat_id: cid, user_id: userId, role: "assistant", content: answer });
+        await db.from("chats").update({ updated_at: new Date().toISOString() }).eq("id", cid);
+      },
+      onError: (err, stage) => {
+        console.error(`chat ${stage} failed:`, explain(err));
+        // Only a total failure is worth an error-dashboard entry: a stream that
+        // died after most of the answer is noise there.
+        if (stage !== "save") captureRouteError(err, req, { route: "/api/chat", status: 502 });
       },
     });
 
@@ -129,9 +138,17 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    console.error("chat error:", err);
+    console.error("chat error:", explain(err));
     captureRouteError(err, req, { route: "/api/chat", status: 500 });
     await g.refund();
-    return NextResponse.json({ error: "Could not reach the AI right now. Please try again." }, { status: 500 });
+    // The admin reason goes to the error dashboard, not to the student: they can
+    // act on "try again", not on a base URL. The one exception is nothing being
+    // set up at all, which is worth saying out loud on a demo.
+    const unconfigured = /no ai provider is configured/i.test((err as Error)?.message ?? "");
+    return NextResponse.json({
+      error: unconfigured
+        ? "No AI key is set up yet. An admin needs to add one under Admin → AI keys."
+        : "The AI did not answer in time. Your message was not counted — please try again.",
+    }, { status: 503 });
   }
 }

@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import { requireUser, logAdmin } from "../../../../lib/auth";
 import { supabaseAdmin } from "../../../../lib/supabase/admin";
+import { checkoutMode } from "../../../../lib/stripe";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Demo upgrade — for showing the flow before Stripe is live.
  *
- * This hands out Premium with no payment, so it is OFF unless DEMO_CHECKOUT=1
- * is set on the server. Remove that variable the moment real payments go live.
+ * This hands out Premium with no payment, so it is gated on `checkoutMode()`
+ * rather than on DEMO_CHECKOUT directly. That matters: once a working Stripe key
+ * is saved, real checkout is live, and this route shuts itself off even if
+ * DEMO_CHECKOUT=1 was left set on the server. Otherwise anyone who knew the URL
+ * could skip the paywall on a site that is taking real money.
  */
 export async function POST(req: Request) {
-  if (process.env.DEMO_CHECKOUT !== "1")
+  if ((await checkoutMode()) !== "demo")
     return NextResponse.json({ error: "Demo checkout is not enabled." }, { status: 404 });
 
   const auth = await requireUser(req);

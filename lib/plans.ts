@@ -5,7 +5,8 @@ export type Plan = "free" | "premium";
 
 export type Feature =
   | "chat" | "notes" | "qna" | "upload" | "transcript" | "translate" | "flashcards" | "test" | "visualMap"
-  | "presentation" | "studyPlan" | "career" | "grammar" | "paraphrase" | "citations";
+  | "presentation" | "studyPlan" | "career" | "grammar" | "paraphrase" | "citations"
+  | "humanize";
 
 export type Rule = {
   label: string;
@@ -24,7 +25,10 @@ export const DEFAULT_RULES: Record<Feature, Rule> = {
   notes:        { label: "Notes",        premiumOnly: false, freePerDay: 2, premiumPerDay: 100, maxInputChars: 8000, maxTokens: 900 },
   qna:          { label: "Q&A",          premiumOnly: false, freePerDay: 1, premiumPerDay: 100, maxInputChars: 300,  maxTokens: 1800 },
   studyPlan:    { label: "Study Plan",   premiumOnly: false, freePerDay: 2, premiumPerDay: 40,  maxInputChars: 300,  maxTokens: 2500 },
-  career:       { label: "Career Help",  premiumOnly: false, freePerDay: 3, premiumPerDay: 40,  maxInputChars: 4000, maxTokens: 1500 },
+  // A twelve-month roadmap is the longest structured answer in the app: four
+  // phases, a portfolio, resources and pay bands. 1500 tokens truncated it
+  // mid-JSON, which the parser then threw away.
+  career:       { label: "Career Help",  premiumOnly: false, freePerDay: 3, premiumPerDay: 40,  maxInputChars: 4000, maxTokens: 3500 },
   flashcards:   { label: "Flashcards",   premiumOnly: true,  freePerDay: 0, premiumPerDay: 60,  maxInputChars: 300,  maxTokens: 900 },
   test:         { label: "Tests",        premiumOnly: true,  freePerDay: 0, premiumPerDay: 30,  maxInputChars: 300,  maxTokens: 2400 },
   visualMap:    { label: "Visual Map",   premiumOnly: true,  freePerDay: 0, premiumPerDay: 40,  maxInputChars: 300,  maxTokens: 1500 },
@@ -32,6 +36,9 @@ export const DEFAULT_RULES: Record<Feature, Rule> = {
   grammar:      { label: "Grammar",      premiumOnly: true,  freePerDay: 0, premiumPerDay: 100, maxInputChars: 6000, maxTokens: 2000 },
   paraphrase:   { label: "Paraphrase",   premiumOnly: true,  freePerDay: 0, premiumPerDay: 100, maxInputChars: 6000, maxTokens: 1500 },
   citations:    { label: "Citations",    premiumOnly: true,  freePerDay: 0, premiumPerDay: 60,  maxInputChars: 300,  maxTokens: 1200 },
+  // A rewrite has to come back at roughly the length it went in at, so the output
+  // budget is deliberately larger than the input cap rather than smaller.
+  humanize:     { label: "Humanize",     premiumOnly: true,  freePerDay: 0, premiumPerDay: 80,  maxInputChars: 6000, maxTokens: 3000 },
 };
 
 export const FEATURES = Object.keys(DEFAULT_RULES) as Feature[];

@@ -4,6 +4,11 @@ import { logAdmin } from "../../../../lib/auth";
 import { supabaseAdmin } from "../../../../lib/supabase/admin";
 import { adminOrFail, body, str } from "../_helpers";
 
+// Vercel gives a function 10 seconds unless it is told otherwise, and an AI
+// answer of any length takes longer than that. Without this line the request is
+// killed mid-generation and the user sees a failure with nothing in the logs.
+export const maxDuration = 60;
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 

@@ -28,6 +28,44 @@ export type Provider = {
 const CACHE_MS = 30_000;
 let cache: { at: number; value: Provider[] } | null = null;
 
+/* ------------------------------------------------------------------ */
+/* Deadlines                                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Nothing here is allowed to wait forever.
+ *
+ * The hosting platform cuts a function off at 60 seconds, so every number below
+ * has to leave room to give up, say so, and still answer the browser. Without
+ * these the SDK's own default is ten minutes — long past the point where the
+ * platform has killed the request and the user is staring at a spinner.
+ */
+const num = (v: string | undefined, fallback: number) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+};
+
+/** One whole HTTP request to a provider. */
+export const REQUEST_MS = num(process.env.AI_REQUEST_MS, 45_000);
+/** How long a stream may stay silent before the first token arrives. */
+export const FIRST_TOKEN_MS = num(process.env.AI_FIRST_TOKEN_MS, 20_000);
+/** How long a stream may stay silent *between* tokens. */
+export const IDLE_MS = num(process.env.AI_IDLE_MS, 20_000);
+/** The whole streaming attempt, failovers included. */
+export const TOTAL_MS = num(process.env.AI_TOTAL_MS, 50_000);
+
+class StallError extends Error {
+  constructor(what: string, ms: number) {
+    super(`${what} after ${Math.round(ms / 1000)}s`);
+  }
+}
+
+class EmptyStreamError extends Error {
+  constructor(label: string) {
+    super(`"${label}" closed the stream without sending any text`);
+  }
+}
+
 /** The environment-variable provider, used when nothing is configured in the panel. */
 function envProvider(): Provider | null {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
@@ -83,8 +121,18 @@ export function clearProviderCache() { cache = null; }
 
 /** A client for one provider. Not cached: a key can change under us at any save. */
 export function clientFor(p: Provider): OpenAI {
-  const client = new OpenAI({ apiKey: p.apiKey, baseURL: p.baseUrl || undefined });
-  if (p.baseUrl) patchForCompat(client);
+  const client = new OpenAI({
+    apiKey: p.apiKey,
+    baseURL: p.baseUrl || undefined,
+    // Without this the SDK waits ten minutes, which is longer than the platform
+    // allows the function to live: the user would see a spinner and never an error.
+    timeout: REQUEST_MS,
+    // No SDK-level retries. The default two would stack another two timeouts on
+    // top of this one — three times 45 seconds against a 60-second ceiling — and
+    // failing over to the next key is a better answer to a dead provider anyway.
+    maxRetries: Number(process.env.AI_MAX_RETRIES ?? 0),
+  });
+  if (p.baseUrl) patchForCompat(client, p.baseUrl);
   return client;
 }
 
@@ -145,6 +193,15 @@ export async function complete(params: CompletionParams): Promise<any> {
     try {
       const client = clientFor(p);
       const res = await (client.chat.completions.create as any)({ ...params, model: p.model });
+
+      // An answer with nothing in it is a failure, not a success. It happens on
+      // a model that spent its whole output budget thinking, and on a provider
+      // that silently refused. Either way the next key deserves a turn, and the
+      // provider's health should show it.
+      if (!params.stream && !(res?.choices?.[0]?.message?.content ?? "").trim()) {
+        throw new EmptyStreamError(p.label);
+      }
+
       void markOk(p);
       return res;
     } catch (err) {
@@ -152,6 +209,115 @@ export async function complete(params: CompletionParams): Promise<any> {
       console.error(`AI provider "${p.label}" failed:`, (err as Error)?.message);
       void markFailed(p, err);
       if (!worthRetrying(err)) break;
+    }
+  }
+
+  throw lastError ?? new NoProviderError();
+}
+
+/* ------------------------------------------------------------------ */
+/* Streaming                                                           */
+/* ------------------------------------------------------------------ */
+
+export type StreamHandle = {
+  provider: Provider;
+  /** Text as it arrives. Throws if the provider dies part-way through. */
+  chunks: AsyncIterable<string>;
+  /** Stop pulling and hang up on the provider — called when the user cancels. */
+  abort(): void;
+};
+
+/** The text in one streamed chunk, whatever shape the provider sends it in. */
+function textOf(chunk: any): string {
+  const delta = chunk?.choices?.[0]?.delta;
+  const c = delta?.content;
+  if (typeof c === "string") return c;
+  // A few providers send the content parts as an array instead of a string.
+  if (Array.isArray(c)) return c.map((part: any) => (typeof part === "string" ? part : part?.text ?? "")).join("");
+  // Reasoning tokens are deliberately ignored: they are the model thinking out
+  // loud, not the answer, and showing them reads as the model losing the plot.
+  return "";
+}
+
+/** `it.next()`, but it gives up instead of waiting forever. */
+async function nextWithin<T>(it: AsyncIterator<T>, ms: number, what: string): Promise<IteratorResult<T>> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      it.next(),
+      new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new StallError(what, ms)), ms); }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** Yield the rest of a stream, abandoning it if it goes quiet or runs long. */
+async function* drain(it: AsyncIterator<any>, first: string, stream: any, deadline: number): AsyncGenerator<string> {
+  try {
+    // Inside the try, not before it: a reader that walks away while the very
+    // first token is being handed over must still hang up on the provider.
+    if (first) yield first;
+    for (;;) {
+      // Out of time: stop cleanly with whatever has been said, rather than
+      // letting the platform kill the function mid-sentence.
+      if (Date.now() > deadline) return;
+      const r = await nextWithin(it, IDLE_MS, "the AI went quiet");
+      if (r.done) return;
+      const t = textOf(r.value);
+      if (t) yield t;
+    }
+  } finally {
+    try { stream?.controller?.abort?.(); } catch { /* already closed */ }
+  }
+}
+
+/**
+ * A streaming chat completion, through the first provider that actually speaks.
+ *
+ * The difference from `complete({ stream: true })` is where "success" is judged.
+ * Creating a stream only means the provider accepted the request; a key with no
+ * quota, a wrong model name or a provider having a bad day can all open a stream
+ * and then say nothing. So this waits for a real token before it commits, which
+ * is what makes failover work for streaming at all.
+ */
+export async function streamComplete(params: CompletionParams): Promise<StreamHandle> {
+  const providers = await loadProviders();
+  if (!providers.length) throw new NoProviderError();
+
+  const deadline = Date.now() + TOTAL_MS;
+  let lastError: unknown = null;
+
+  for (const p of providers) {
+    let stream: any = null;
+    try {
+      const client = clientFor(p);
+      stream = await (client.chat.completions.create as any)({ ...params, model: p.model, stream: true });
+      const it: AsyncIterator<any> = stream[Symbol.asyncIterator]();
+
+      // Pull until there is text. Leading chunks carry the role and nothing else.
+      let first = "";
+      for (;;) {
+        const r = await nextWithin(it, FIRST_TOKEN_MS, `"${p.label}" sent nothing`);
+        if (r.done) throw new EmptyStreamError(p.label);
+        first = textOf(r.value);
+        if (first) break;
+      }
+
+      void markOk(p);
+      return {
+        provider: p,
+        chunks: drain(it, first, stream, deadline),
+        abort: () => { try { stream?.controller?.abort?.(); } catch { /* already closed */ } },
+      };
+    } catch (err) {
+      lastError = err;
+      try { stream?.controller?.abort?.(); } catch { /* never opened */ }
+      console.error(`AI provider "${p.label}" stream failed:`, (err as Error)?.message);
+      void markFailed(p, err);
+      if (!worthRetrying(err)) break;
+      // No time left to try another key — the caller needs the error now.
+      if (Date.now() > deadline - FIRST_TOKEN_MS) break;
     }
   }
 
@@ -198,6 +364,27 @@ export async function testProvider(p: Provider): Promise<{ ok: true; reply: stri
   }
 }
 
+/**
+ * What to tell the *student* when a tool fails.
+ *
+ * `explain()` is for the admin dashboard — a student can do nothing about a base
+ * URL. Three cases are worth separating out, because each one has a different
+ * next step: nothing is set up (tell the admin), it ran out of time (try again),
+ * everything else (the tool's own wording).
+ */
+export function aiErrorMessage(err: unknown, fallback: string): string {
+  const message = (err as { message?: string })?.message ?? String(err);
+  const status = (err as { status?: number })?.status;
+
+  if (err instanceof NoProviderError || /no ai provider is configured/i.test(message))
+    return "No AI key is set up yet. An admin needs to add one under Admin → AI keys.";
+  if (status === 429)
+    return "The AI is busy or out of credit at the moment. Your allowance was not used — try again shortly.";
+  if (/timeout|timed out|aborted|went quiet|sent nothing|without sending any text/i.test(message))
+    return "The AI took too long to answer. Your allowance was not used — please try again.";
+  return fallback;
+}
+
 /** Turn a provider error into something an admin can act on. */
 export function explain(err: unknown): string {
   const e = err as { status?: number; message?: string; code?: string };
@@ -216,16 +403,29 @@ export function explain(err: unknown): string {
 
 /* ------------------------------------------------------------------ */
 
+/** Nothing useful comes back under this, once a model has thought to itself. */
+const MIN_OUTPUT_TOKENS = num(process.env.AI_MIN_OUTPUT_TOKENS, 2000);
+
 /** Other providers differ on a few parameters, so adapt requests in ONE place. */
-function patchForCompat(c: OpenAI) {
+function patchForCompat(c: OpenAI, baseUrl: string) {
   const completions = c.chat.completions as any;
   const original = completions.create.bind(completions);
-  const multiplier = Number(process.env.AI_TOKEN_MULTIPLIER || 3); // "thinking" models spend output tokens internally
+  const multiplier = num(process.env.AI_TOKEN_MULTIPLIER, 3); // "thinking" models spend output tokens internally
 
-  completions.create = (params: any, options?: any) => {
+  // Gemini's 2.5 models think before answering and bill that thinking against
+  // the output budget. On a small budget they can use all of it reasoning and
+  // return an empty message, which looks exactly like a broken key. Turning the
+  // thinking off is the fix; if the provider does not know the field, the call
+  // below drops it and tries again, so an unknown provider is not punished for it.
+  const geminiStyle = /generativelanguage\.googleapis\.com/i.test(baseUrl);
+  const quietThinking = geminiStyle && process.env.AI_THINKING !== "on";
+
+  completions.create = async (params: any, options?: any) => {
     const p = { ...params };
 
-    if (p.max_tokens) p.max_tokens = Math.ceil(p.max_tokens * multiplier);
+    // A floor as well as a multiplier: three times a small number is still small.
+    if (p.max_tokens) p.max_tokens = Math.max(MIN_OUTPUT_TOKENS, Math.ceil(p.max_tokens * multiplier));
+    if (quietThinking && p.reasoning_effort === undefined) p.reasoning_effort = "none";
 
     // Strict structured outputs may not be supported: fall back to "reply with JSON" in the prompt.
     const rf = p.response_format;
@@ -242,7 +442,18 @@ function patchForCompat(c: OpenAI) {
         p.messages = [...p.messages, { role: "user", content: "Reply with ONLY valid JSON. No markdown, no commentary." }];
       }
     }
-    return original(p, options);
+
+    try {
+      return await original(p, options);
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      if (p.reasoning_effort !== undefined && (status === 400 || status === 404 || status === 422)) {
+        // This provider does not take the thinking switch. Send it without.
+        const { reasoning_effort, ...rest } = p;
+        return await original(rest, options);
+      }
+      throw err;
+    }
   };
 }
 
@@ -272,3 +483,10 @@ export function extractJson<T = any>(text: string, kind: "object" | "array"): T 
 export async function readJson(req: Request): Promise<any> {
   try { return await req.json(); } catch { return {}; }
 }
+
+/**
+ * The pieces the tests exercise directly. Nothing in the app imports this: the
+ * stream watchdog and the compatibility shim are where the bugs live, and they
+ * are not reachable from outside without a real provider on the other end.
+ */
+export const __internals = { textOf, nextWithin, drain, worthRetrying, patchForCompat, MIN_OUTPUT_TOKENS, StallError, EmptyStreamError };

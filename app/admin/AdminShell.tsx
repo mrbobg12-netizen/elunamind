@@ -13,6 +13,7 @@ const NAV: { href: string; label: string; icon: IconName; needs: Permission }[] 
   { href: "/admin/plans", label: "Plans & limits", icon: "zap", needs: "settings" },
   { href: "/admin/branding", label: "Branding & site", icon: "spark", needs: "settings" },
   { href: "/admin/ai", label: "AI keys", icon: "zap", needs: "settings" },
+  { href: "/admin/billing", label: "Payments", icon: "cite", needs: "settings" },
   { href: "/admin/site", label: "Website", icon: "globe", needs: "settings" },
   { href: "/admin/pages", label: "Pages", icon: "file", needs: "settings" },
   { href: "/admin/bot", label: "Chat bubble", icon: "chat", needs: "settings" },

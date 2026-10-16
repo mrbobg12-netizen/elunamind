@@ -3,7 +3,7 @@ import { requireUser } from "../../../lib/auth";
 import { captureRouteError } from "../../../lib/errors";
 import { getSettings } from "../../../lib/settings";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
-import { stripe } from "../../../lib/stripe";
+import { checkoutMode, explainStripe, readiness, stripe, stripeConfig } from "../../../lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -15,9 +15,30 @@ export async function POST(req: Request) {
     if (auth.paidPlan === "premium")
       return NextResponse.json({ error: "You're already on Premium." }, { status: 400 });
 
-    // Demo mode: show the checkout flow without touching a payment provider.
-    if (process.env.DEMO_CHECKOUT === "1") return NextResponse.json({ url: "/checkout/demo" });
+    /**
+     * Which checkout runs is decided by whether Stripe is actually usable, not
+     * by a separate switch someone has to remember to flip. Saving a working key
+     * and a price in the admin panel is what turns real payments on; there is no
+     * second step, and so no way to be live in one place and demo in another.
+     */
+    const mode = await checkoutMode();
 
+    if (mode === "demo") return NextResponse.json({ url: "/checkout/demo" });
+    if (mode === "off") {
+      const config = await stripeConfig();
+      const { problems } = readiness(config);
+      console.error("checkout attempted before payments were set up:", problems.join(" "));
+      // The reason goes to the admin dashboard; the customer gets something
+      // they can act on, which is "tell someone", not "add a webhook secret".
+      captureRouteError(new Error(`Checkout not configured: ${problems.join(" ")}`), req, {
+        route: "/api/create-checkout-session", status: 503,
+      });
+      return NextResponse.json({
+        error: "Payments are not switched on yet. Please contact support — this is not a problem with your card.",
+      }, { status: 503 });
+    }
+
+    const config = await stripeConfig();
     const { flags } = await getSettings();
 
     const { data: profile } = await supabaseAdmin()
@@ -36,9 +57,9 @@ export async function POST(req: Request) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
 
-    const session = await stripe().checkout.sessions.create({
+    const session = await (await stripe()).checkout.sessions.create({
       mode: "subscription",
-      line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+      line_items: [{ price: config.priceId, quantity: 1 }],
       success_url: `${appUrl}/success`,
       cancel_url: `${appUrl}/pricing`,
       client_reference_id: auth.user.id,
@@ -64,7 +85,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url, trialDays: offerTrial ? flags.trialDays : 0 });
   } catch (err) {
-    console.error("create-checkout-session error:", (err as Error)?.message || err);
+    // The Stripe reason is logged for the admin and withheld from the customer:
+    // "no such price in test mode" is actionable for one and alarming for the other.
+    console.error("create-checkout-session error:", explainStripe(err));
     captureRouteError(err, req, { route: "/api/create-checkout-session", status: 500 });
     return NextResponse.json({ error: "Unable to start checkout. Please try again." }, { status: 500 });
   }

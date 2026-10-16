@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "../../../lib/auth";
 import { captureRouteError } from "../../../lib/errors";
 import { getSettings } from "../../../lib/settings";
-import { stripe } from "../../../lib/stripe";
+import { checkoutMode, explainStripe, stripe } from "../../../lib/stripe";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -58,8 +58,9 @@ export async function GET(req: Request) {
     status: row.subscription_status,
     cancelAtPeriodEnd: !!row.cancel_at_period_end,
     renewsAt: row.current_period_end,
-    // Only a real Stripe customer can be sent to the portal.
-    canManage: !!row.stripe_customer_id && process.env.DEMO_CHECKOUT !== "1",
+    // Only a real Stripe customer can be sent to the portal, and only while
+    // Stripe is actually live — a demo upgrade has nothing to manage.
+    canManage: !!row.stripe_customer_id && (await checkoutMode()) === "live",
     hasSubscription: !!row.stripe_subscription_id,
     trialUsed: !!row.trial_started_at,
     trialRequiresCard: flags.trialRequiresCard,
@@ -81,9 +82,9 @@ export async function POST(req: Request) {
     const auth = await requireUser(req);
     if (!auth) return NextResponse.json({ error: "Please log in." }, { status: 401 });
 
-    if (process.env.DEMO_CHECKOUT === "1")
+    if ((await checkoutMode()) !== "live")
       return NextResponse.json(
-        { error: "This demo has no real payments, so there is nothing to manage." },
+        { error: "There is no real subscription to manage on this account." },
         { status: 400 }
       );
 
@@ -97,7 +98,7 @@ export async function POST(req: Request) {
       );
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
-    const session = await stripe().billingPortal.sessions.create({
+    const session = await (await stripe()).billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
       return_url: `${appUrl}/dashboard/account`,
     });

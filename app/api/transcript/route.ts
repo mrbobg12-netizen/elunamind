@@ -7,7 +7,9 @@ import { BUCKET, getOwnedUpload } from "../../../lib/uploads";
 import { captureRouteError } from "../../../lib/errors";
 
 export const runtime = "nodejs";
-export const maxDuration = 300;
+// 60 is the ceiling on Vercel's lower plans; asking for more fails the deploy.
+// The 12 MB upload cap is what keeps transcription inside it.
+export const maxDuration = 60;
 
 const LANGS = ["auto", "en", "ur", "hi", "ar", "es", "fr", "de", "zh", "pt", "ru", "tr", "id"] as const;
 

@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { MODEL, clean, complete, readJson } from "../../../lib/ai";
+import { aiErrorMessage, clean, complete, MODEL, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { getOwnedUpload } from "../../../lib/uploads";
 import { captureRouteError } from "../../../lib/errors";
+
+// Vercel gives a function 10 seconds unless it is told otherwise, and an AI
+// answer of any length takes longer than that. Without this line the request is
+// killed mid-generation and the user sees a failure with nothing in the logs.
+export const maxDuration = 60;
 
 // A pasted passage is capped by the plan rule, but a file the student already
 // spent an upload on gets the fuller budget: cutting it to 8k would quietly
@@ -65,6 +70,6 @@ export async function POST(req: Request) {
     console.error("notes error:", err);
     captureRouteError(err, req, { route: "/api/notes", status: 500 });
     await g.refund();
-    return NextResponse.json({ error: "Failed to generate notes." }, { status: 500 });
+    return NextResponse.json({ error: aiErrorMessage(err, "Failed to generate notes.") }, { status: 500 });
   }
 }

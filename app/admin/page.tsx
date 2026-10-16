@@ -9,7 +9,7 @@ type Day = { day: string; uses: number; active_users: number; signups: number };
 type FeatureRow = { kind: string; uses: number; users: number };
 
 const LABELS: Record<string, string> = {
-  chat: "Chat", notes: "Notes", qna: "Q&A", studyPlan: "Study plan", career: "Career",
+  chat: "Chat", notes: "Notes", qna: "Q&A", studyPlan: "Study plan", career: "Career", humanize: "Humanize",
   flashcards: "Flashcards", test: "Tests", visualMap: "Mind maps", presentation: "Slides",
   grammar: "Grammar", paraphrase: "Paraphrase", citations: "Citations",
 };

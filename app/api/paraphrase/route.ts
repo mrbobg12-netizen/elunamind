@@ -3,6 +3,11 @@ import { MODEL, clean, complete, readJson } from "../../../lib/ai";
 import { guard } from "../../../lib/guard";
 import { captureRouteError } from "../../../lib/errors";
 
+// Vercel gives a function 10 seconds unless it is told otherwise, and an AI
+// answer of any length takes longer than that. Without this line the request is
+// killed mid-generation and the user sees a failure with nothing in the logs.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const g = await guard(req, "paraphrase");
   if (!g.ok) {

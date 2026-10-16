@@ -76,6 +76,12 @@ alter table public.admin_audit enable row level security;
 -- 5) Analytics helpers
 -- ---------------------------------------------------------------------
 
+-- Later migrations change what these two functions return, so a re-run of this
+-- file would hit "cannot change return type of existing function": `create or
+-- replace` can swap a function's body but never its output columns. Dropping
+-- first makes this file safe to run again at any point, in any order.
+drop function if exists public.admin_overview();
+
 -- Headline numbers for the admin dashboard.
 create or replace function public.admin_overview()
 returns jsonb language sql security definer set search_path = public stable as $$
@@ -120,6 +126,8 @@ language sql security definer set search_path = public stable as $$
   where day >= current_date - (p_days - 1)
   group by kind order by 2 desc;
 $$;
+
+drop function if exists public.admin_user_list(text, text, text, text, int, int);
 
 -- One page of users with their lifetime and today's usage, searchable and sortable.
 create or replace function public.admin_user_list(

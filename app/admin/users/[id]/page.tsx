@@ -23,7 +23,7 @@ type Detail = {
 
 const LABELS: Record<string, string> = {
   chat: "Chat", upload: "Uploads", transcript: "Transcripts", translate: "Translate",
-  notes: "Notes", qna: "Q&A", studyPlan: "Study plan", career: "Career",
+  notes: "Notes", qna: "Q&A", studyPlan: "Study plan", career: "Career", humanize: "Humanize",
   flashcards: "Flashcards", test: "Tests", visualMap: "Mind maps", presentation: "Slides",
   grammar: "Grammar", paraphrase: "Paraphrase", citations: "Citations",
 };

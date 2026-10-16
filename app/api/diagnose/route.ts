@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "../../../lib/auth";
 import { supabaseAdmin } from "../../../lib/supabase/admin";
 import { getSettings } from "../../../lib/settings";
+import { checkoutMode, readiness, stripeConfig } from "../../../lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,42 @@ export async function GET(req: Request) {
   const { data: admins } = await db.from("profiles").select("email").eq("role", "admin");
   const settings = await getSettings();
 
+  // The AI side of the setup. Labels and health only — never a key, not even a
+  // masked one, because this page is readable by any signed-in user.
+  const { data: keyRows, error: keyErr } = await db
+    .from("ai_providers").select("label,enabled,status,last_error,last_checked_at,priority").order("priority");
+  const keys = keyRows ?? [];
+  const liveKeys = keys.filter((k) => k.enabled);
+  const envKeyPresent = !!process.env.OPENAI_API_KEY?.trim();
+  const ai = {
+    keysTable: keyErr ? `NOT SET UP: run supabase/010_ai_providers.sql (${keyErr.message})` : "readable",
+    keysConfigured: keys.length,
+    keysSwitchedOn: liveKeys.length,
+    environmentKeyAsBackup: envKeyPresent,
+    aiPausedInAdmin: settings.flags.aiDisabled,
+    health: liveKeys.map((k) => ({
+      name: k.label,
+      status: k.status ?? "untested",
+      lastProblem: k.last_error ?? null,
+      lastChecked: k.last_checked_at ?? null,
+    })),
+  };
+
+  // Payments. No key or secret appears here — only what is set and whether it works.
+  const stripeCfg = await stripeConfig(true);
+  const stripeReady = readiness(stripeCfg);
+  const mode = await checkoutMode();
+  const payments = {
+    checkout: mode,   // live | demo | off
+    keySource: stripeCfg.source,
+    stripeMode: stripeReady.mode,
+    stripeAccount: stripeCfg.accountName || null,
+    priceSet: !!stripeCfg.priceId,
+    webhookSecretSet: !!stripeCfg.webhookSecret,
+    problems: stripeReady.problems,
+    demoCheckoutEnvStillSet: process.env.DEMO_CHECKOUT === "1",
+  };
+
   // The single most useful line: the one thing to fix first.
   let verdict = "Everything looks right.";
   if (!serverKey.correct)
@@ -64,6 +101,16 @@ export async function GET(req: Request) {
     verdict = "FIX THIS: the server cannot run consume_usage. Run supabase/004_fixes.sql.";
   else if (!profile)
     verdict = "FIX THIS: your login has no matching row in profiles. See the note below.";
+  else if (settings.flags.aiDisabled)
+    verdict = "FIX THIS: AI is paused in Admin → Branding & site. Nothing will generate until it is switched back on.";
+  else if (!ai.keysSwitchedOn && !envKeyPresent)
+    verdict = "FIX THIS: there is no AI key. Add one in Admin → AI keys and press Test.";
+  else if (ai.keysSwitchedOn && ai.health.every((k) => k.status === "failed") && !envKeyPresent)
+    verdict = `FIX THIS: every AI key is failing. The last problem was: ${ai.health[0].lastProblem ?? "unknown"}`;
+  else if (payments.checkout === "live" && !payments.webhookSecretSet)
+    // Cannot normally happen — "live" requires a webhook secret — but if it ever
+    // does, it is the single worst state: money in, nothing delivered.
+    verdict = "FIX THIS NOW: payments are live with no webhook secret. Customers can be charged and not upgraded.";
   else if (auth.role !== "admin")
     verdict = "Your account is not an admin yet. Set role = 'admin' for your email in profiles, then log out and back in.";
 
@@ -89,6 +136,8 @@ export async function GET(req: Request) {
       app_settings: appSettings,
       consume_usage_function: probe.error ? `BROKEN: ${probe.error.message}` : "OK",
     },
+    ai,
+    payments,
     limits: {
       chatFreePerDay: settings.rules.chat.freePerDay,
       notesFreePerDay: settings.rules.notes.freePerDay,
