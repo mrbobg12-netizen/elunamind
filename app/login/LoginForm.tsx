@@ -184,7 +184,7 @@ export function LoginForm() {
             <label className="block">
               <span className="mb-1.5 flex items-baseline justify-between text-sm text-paper/90">
                 Password
-                {mode === "signin" && <Link href="/forgot" className="text-xs text-lamp transition-opacity hover:opacity-80">Forgot it?</Link>}
+                {mode === "signin" && <Link href="/forgot" className="-my-1 inline-block py-1 text-xs text-lamp transition-opacity hover:opacity-80">Forgot it?</Link>}
               </span>
               <div className="relative">
                 <Icon name="lock" size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
@@ -217,13 +217,13 @@ export function LoginForm() {
 
           <p className="mt-5 text-center text-sm text-muted">
             {mode === "signin" ? (
-              <>New here? <button type="button" className="text-lamp hover:underline" onClick={() => { setMode("signup"); setError(""); }}>Create an account</button></>
+              <>New here? <button type="button" className="-my-1 inline-block py-1 text-lamp hover:underline" onClick={() => { setMode("signup"); setError(""); }}>Create an account</button></>
             ) : (
               <>Already have an account? <button type="button" className="text-lamp hover:underline" onClick={() => { setMode("signin"); setError(""); }}>Log in</button></>
             )}
           </p>
           <p className="mt-4 text-center text-sm text-muted">
-            <Link href="/" className="transition-colors hover:text-paper">← Back to home</Link>
+            <Link href="/" className="-my-1.5 inline-block py-1.5 transition-colors hover:text-paper">← Back to home</Link>
           </p>
         </div>
       </div>

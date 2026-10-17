@@ -25,12 +25,27 @@ export async function Footer() {
           </div>
           {([["Product", product], ["Account", account], ["Legal", legalLinks]] as const).map(([head, links]) =>
             links.length ? (
-              <nav key={head}>
-                <h3 className="font-display text-sm font-semibold text-paper">{head}</h3>
-                <ul className="mt-3.5 space-y-2.5">
+              <nav key={head} aria-label={head}>
+                {/*
+                  h2, not h3: these follow the page's h1, and jumping a level
+                  leaves anyone navigating by headings wondering what they
+                  missed. Visually identical — the size is set by the class.
+                */}
+                <h2 className="font-display text-sm font-semibold text-paper">{head}</h2>
+                <ul className="mt-2 space-y-0.5">
                   {links.map(([l, h]) => (
                     <li key={h}>
-                      <Link href={h} className="text-sm text-muted transition-colors hover:text-paper">{l}</Link>
+                      {/*
+                        The padding is the point. These links were 17px tall, and
+                        a 17px target on a phone is a link you miss and hit the
+                        one below. The inline-block plus vertical padding brings
+                        them to 24, which is the accessibility floor, without
+                        changing how the footer looks.
+                      */}
+                      <Link
+                        href={h}
+                        className="inline-block py-1.5 text-sm text-muted transition-colors hover:text-paper"
+                      >{l}</Link>
                     </li>
                   ))}
                 </ul>
@@ -46,7 +61,7 @@ export async function Footer() {
               for the small print, not buried in a policy page. */}
           <p className="max-w-xl leading-relaxed">{site.footerNote}</p>
           <div className="flex shrink-0 flex-col gap-1 lg:items-end">
-            <a href={`mailto:${branding.supportEmail}`} className="transition-colors hover:text-paper">{branding.supportEmail}</a>
+            <a href={`mailto:${branding.supportEmail}`} className="-my-1 inline-block py-1 transition-colors hover:text-paper">{branding.supportEmail}</a>
             <p>© {new Date().getFullYear()} {branding.siteName}</p>
           </div>
         </div>

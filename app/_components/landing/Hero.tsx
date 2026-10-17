@@ -221,13 +221,22 @@ export function Hero({ c }: { c: HeroContent }) {
             <div className="relative">
               <div className="flex items-center justify-between gap-3 px-5 pt-5 sm:px-6">
                 <p className="text-[0.7rem] uppercase tracking-[0.14em] text-mute/70">{c.afterLabel}</p>
-                <div className="flex gap-1" role="tablist" aria-label="Output">
+                {/*
+                  The dots stay 6px because that is the right size to look at.
+                  The button around each one is 24px tall with padding, because
+                  6×6 is the right size to miss: it is a quarter of the minimum
+                  anyone can reliably hit with a thumb. The visible dot is the
+                  inner span; the padding is invisible and does the work.
+                */}
+                <div className="-my-2 flex" role="tablist" aria-label="Output">
                   {STAGES.map((s, i) => (
                     <button key={s.label} type="button" role="tab" aria-selected={i === stage} aria-label={s.label}
                       onClick={() => { setStage(i); setPaused(true); }}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        i === stage ? "w-6 bg-lamp" : "w-1.5 bg-white/20 hover:bg-white/40"
+                      className="group flex h-6 min-w-6 items-center justify-center">
+                      <span className={`block h-1.5 rounded-full transition-all duration-300 ${
+                        i === stage ? "w-6 bg-lamp" : "w-1.5 bg-white/20 group-hover:bg-white/40"
                       }`} />
+                    </button>
                   ))}
                 </div>
               </div>

@@ -99,6 +99,63 @@ Anything starting with `ERROR:` is not — stop and send me the message.
 
 ---
 
+## 2-0. Branding — what a shared link looks like
+
+Three things were missing and are now in:
+
+**The site had no favicon at all.** `app/favicon.png` was never a filename Next.js
+recognises — only `favicon.ico` and `icon.*` — so it never reached the build and
+browsers showed the blank default. There is now `app/icon.svg` (a simplified mark:
+at 16 pixels the brain folds turn to mud, so the favicon keeps the silhouette, the
+seam and the light and drops the detail), `app/favicon.ico` holding 16 and 32 pixel
+versions for Google and older Windows, `app/apple-icon.png` at 180 for iOS, and a
+web manifest so "Add to home screen" gets the right name and icon.
+
+**A shared link showed a grey box.** There was no `openGraph` metadata and no
+`metadataBase`, which means even a correct image URL comes out relative and
+WhatsApp, Slack and LinkedIn cannot resolve it. There is now a share card drawn at
+`/opengraph-image`, 1200×630, carrying the mark, the headline and the tagline —
+**read from Admin → Branding**, so renaming the site changes every future share
+within the hour. It needs `NEXT_PUBLIC_APP_URL` set correctly; that is what makes
+the image URL absolute.
+
+**Auth emails were Supabase's defaults**, with Supabase's branding. Six branded
+templates are in `supabase/emails/` with a README: confirm signup, reset password,
+magic link, change email, invite and reauthentication. Paste each into
+Supabase → Authentication → Emails, and set the subject line there too.
+
+Also: `robots.txt` (the dashboard, the admin panel and `/diagnose` are kept out of
+search), a `sitemap.xml` that picks up blog posts and legal pages from the database,
+and the five Next.js starter SVGs that were still shipping in `public/` are gone.
+
+**One thing worth knowing about the sitemap.** `/flashcards`, `/grammar`, `/career`
+and the rest look like landing pages but every one is a redirect into the dashboard,
+so a crawler following them lands on the login screen. They are deliberately left
+out — a redirect in a sitemap is reported as an error, and whatever gets indexed is
+the login page. They would be worth real landing pages later; that is an SEO job,
+not a branding one.
+
+---
+
+## 2-00. A testing pass was run — three real bugs came out of it
+
+Full write-up in `TESTING.md`, including the checklist you need to run yourself
+on the signed-in side. The short version:
+
+- **Every 404 page was completely unstyled** — Times New Roman on white, default
+  blue links, permanently. The 404 now carries its own styles and depends on
+  nothing.
+- **`/api/client-error` returned 500 on every malformed report**, so browser
+  crashes were never recorded and nothing said so.
+- **Long links and tokens in AI answers were silently cut off** — the middle of a
+  URL simply vanished, and a student copying it got a broken link.
+
+Plus tap targets raised to the 24px floor and two skipped heading levels fixed.
+The signed-out surface went from 94 findings to 3, and the three left are Next.js
+prefetch noise.
+
+---
+
 ## 2a. Payments move into the admin panel
 
 **Saving a working Stripe key is what turns real payments on.** There is no second

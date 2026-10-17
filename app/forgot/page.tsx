@@ -63,7 +63,7 @@ export default function ForgotPage() {
               </button>
             </form>
             <p className="mt-6 text-center text-sm text-muted">
-              <Link href="/login" className="transition-colors hover:text-paper">← Back to log in</Link>
+              <Link href="/login" className="-my-1.5 inline-block py-1.5 transition-colors hover:text-paper">← Back to log in</Link>
             </p>
           </div>
         )}

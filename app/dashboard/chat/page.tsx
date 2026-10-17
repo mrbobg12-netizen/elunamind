@@ -217,7 +217,13 @@ export default function ChatPage() {
                           <Icon name="attach" size={12} /> <span className="truncate">{m.file}</span>
                         </span>
                       )}
-                      <div className="max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-br-md px-4 py-3 text-[0.95rem] text-paper" style={{ background: "#1b2440" }}>{m.content}</div>
+                      {/*
+                        `break-words` because a student pasting a long token or
+                        typing one unbroken word had the end of their own
+                        message clipped away — the bubble grew past the screen
+                        and the page clips rather than scrolls.
+                      */}
+                      <div className="max-w-[88%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md px-4 py-3 text-[0.95rem] text-paper" style={{ background: "#1b2440" }}>{m.content}</div>
                     </div>
                   ) : (
                     <div key={m.id} className="pop-in group flex gap-3">

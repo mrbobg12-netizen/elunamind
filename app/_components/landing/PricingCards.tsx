@@ -23,7 +23,7 @@ export async function PricingCards() {
   return (
     <div className="mx-auto grid max-w-4xl items-start gap-5 md:grid-cols-2">
       <div className="glass rounded-2xl p-7">
-        <h3 className="font-display text-xl text-paper">{pricing.freeName}</h3>
+        <h2 className="font-display text-xl text-paper">{pricing.freeName}</h2>
         <p className="mt-1 text-sm text-muted">Enough to study with every day.</p>
         <p className="mt-6 font-display text-4xl text-paper">$0</p>
         <p className="text-sm text-muted">forever</p>
@@ -37,7 +37,7 @@ export async function PricingCards() {
         <div className="lamp-glow -right-10 -top-10 h-40 w-40 bg-violet-500/20" />
         <div className="relative">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-xl text-paper">{pricing.premiumName}</h3>
+            <h2 className="font-display text-xl text-paper">{pricing.premiumName}</h2>
             <span className="chip chip-brand">Everything unlocked</span>
           </div>
           <p className="mt-1 text-sm text-muted">{pricing.premiumBlurb}</p>

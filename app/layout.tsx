@@ -4,6 +4,8 @@ import "katex/dist/katex.min.css";
 import "highlight.js/styles/github-dark.css";
 import "./globals.css";
 import { ErrorReporter } from "./_components/ErrorCatcher";
+import { getSettings } from "../lib/settings";
+import { siteUrl } from "../lib/site";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,11 +28,58 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export const metadata: Metadata = {
-  title: "Eluna Mind — Smarter Learning",
-  description:
-    "An AI study tutor that explains step by step, turns your text into notes, quizzes you, and plans your exam week. Free to start.",
-};
+/**
+ * Everything a link needs to look like something when it is shared.
+ *
+ * This is generated rather than hardcoded for two reasons. The title and
+ * description belong to the admin panel like the rest of the site's words, and
+ * `metadataBase` has to be the real deployed address — without it Next emits
+ * relative image URLs, which WhatsApp, Slack and LinkedIn cannot resolve, so
+ * the preview comes back as a grey box with no picture at all.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { branding } = await getSettings();
+  const base = siteUrl();
+  const title = `${branding.siteName} — ${SHORT_PITCH}`;
+
+  return {
+    metadataBase: new URL(base),
+    title: {
+      default: title,
+      // Every other page sets its own title and gets the name added for free.
+      template: `%s · ${branding.siteName}`,
+    },
+    description: branding.tagline,
+    applicationName: branding.siteName,
+    keywords: ["AI tutor", "study notes", "flashcards", "exam revision", "lecture transcription", "study planner"],
+    authors: [{ name: branding.siteName }],
+    openGraph: {
+      type: "website",
+      siteName: branding.siteName,
+      title,
+      description: branding.tagline,
+      url: base,
+      locale: "en_US",
+      // The image itself is drawn by app/opengraph-image.tsx. Next fills in the
+      // dimensions and the absolute URL from metadataBase.
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: branding.tagline,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+    },
+    alternates: { canonical: base },
+    formatDetection: { telephone: false },
+  };
+}
+
+/** Said once here so the card, the tab and the search result agree. */
+const SHORT_PITCH = "Smarter Learning";
 
 export default function RootLayout({
   children,

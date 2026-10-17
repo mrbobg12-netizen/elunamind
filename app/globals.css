@@ -69,6 +69,25 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
 }
+/*
+  Long unbreakable strings.
+
+  html and body clip horizontally, which stops a stray wide element scrolling
+  the whole page sideways — but it also means anything too wide is silently
+  cut off rather than reachable. An AI answer containing a URL, a hash or a
+  token has no space or hyphen to break at, so without this the middle of the
+  link simply disappears: the student copies it and it does not work.
+
+  `break-word` only breaks when the word cannot fit on a line of its own, so
+  ordinary prose still wraps between words as normal. Tables and code blocks
+  are deliberately left out — they scroll inside their own box, which is the
+  right behaviour for a wide table and essential for code, where a broken line
+  is a changed line.
+*/
+p, li, dd, dt, blockquote, figcaption, label, h1, h2, h3, h4, h5, h6, a, span, td, th {
+  overflow-wrap: break-word;
+}
+
 ::selection { background: rgba(139, 108, 255, .35); color: var(--paper); }
 * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.16) transparent; }
 :focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; border-radius: 6px; }
